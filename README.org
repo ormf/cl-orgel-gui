@@ -1,0 +1,15 @@
+
+* cl-orgel-gui
+*** _Orm Finnendahl <orm.finnendahl@selma.hfmdk-frankfurt.de>_
+
+This is a project for a browser-based gui for the Papierrohrorgel
+research project. It depends on [[https://github.com/rabbibotton/clog/][CLOG]] by David Botton.
+
+** License
+
+gpl 2.0 or later
+
+
+Copyright (c) 2023 Orm Finnendahl <orm.finnendahl@selma.hfmdk-frankfurt.de>
+
+
