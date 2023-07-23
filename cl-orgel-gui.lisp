@@ -30,6 +30,31 @@
 (defstruct orgel
   (level-sliders (make-array 16)))
 
+#|
+(defun create-form-string (element-type &rest args
+                                &key (name nil)
+                                  (class nil)
+                                  (style nil)
+                                  (hidden nil)
+                                  &allow-other-keys)
+  (declare (ignorable name))
+  (dolist (key '(name class style hidden html-id auto-place))
+    (remf args key))
+  (format nil "<input type='~A'~@[~A~]~@[~A~]~{~(A~)= '~A'~^ ~}/>"
+                               (escape-string element-type :html t)
+                               (when class
+                                 (format nil " class='~A'"
+                                         (escape-string class :html t)))
+                               (when (or hidden style)
+                                 (format nil " style='~@[~a~]~@[~a~]'"
+                                         (when hidden "visibility:hidden;")
+                                         style))
+                               args))
+
+(format nil "~{~(~A~)= '~A'~^ ~}" '(:name "Georg" :blah 0.0))
+
+|#
+
 (defvar *curr-orgel-state*
   (make-orgel :level-sliders (make-array 16 :initial-element 0.0)))
 
@@ -53,38 +78,6 @@
                                         :max (format nil "~a" max)
                                         :style "position: absolute;top: 40%; transform: rotate(270deg);"))
 |#
-
-(defmethod create-form-element ((obj clog-obj) element-type
-                                &key (name nil)
-                                  (value nil)
-                                  (min nil)
-                                  (max nil)
-                                  (label nil)
-                                  (class nil)
-                                  (style nil)
-                                  (hidden nil)
-                                  (html-id nil)
-                                  (auto-place t))
-  (let ((element (create-child
-                  obj (format nil "<input type='~A'~@[~A~]~@[~A~]~@[~A~]~@[~A~]~@[~A~]~@[~A~]/>"
-                              (escape-string element-type :html t)
-                              (when class
-                                (format nil " class='~A'"
-                                        (escape-string class :html t)))
-                              (when (or hidden style)
-                                (format nil " style='~@[~a~]~@[~a~]'"
-                                        (when hidden "visibility:hidden;")
-                                        style))
-                              (when value (format nil " value='~A'" (escape-string value :html t)))
-                              (when min (format nil " min='~A'" (escape-string min :html t)))
-                              (when max (format nil " max='~A'" (escape-string max :html t)))
-                              (when name  (format nil " name='~A'" (escape-string name :html t))))
-                  :clog-type  'clog-form-element
-                  :html-id    html-id
-                  :auto-place auto-place)))
-    (when label
-      (label-for label element))
-    element))
 
 (defun vslider (container &key (value 0.0) (min 0.0) (max 100.0))
   (create-form-element
@@ -114,6 +107,8 @@
 
 (defun new-connection-id ()
   (uuid:make-v1-uuid))
+
+(defparameter *mouse-down* nil)
 
 (defun on-new-window (body)
   (let ((connection-id (new-connection-id))
@@ -160,14 +155,32 @@
                    (setf (width vsl) 100)
                    (setf (height vsl) 10)
                    (setf (value vsl) (aref (orgel-level-sliders *curr-orgel-state*) idx))
-                   (let ((idx idx) (vsl vsl)) ;;; close around function to catch the current value for idx and vsl
+                   (let ((idx idx) (vsl vsl) mouse-down) ;;; close around function to catch the current value for idx and vsl
                      (setf (aref (orgel-level-sliders orgel) idx) vsl)
                      (set-on-input vsl
                                    (lambda (obj)
                                      (declare (ignore obj))
                                      (let ((val (value vsl)))
 ;;;                                       (format t "vsl~a: ~a~%" (1+ idx) val)
-                                       (synchronize-vsl idx val)))))))
+                                       (synchronize-vsl idx val))))
+                     ;; (set-on-mouse-down vsl
+                     ;;                    (lambda (obj event-data)
+                     ;;                      (declare (ignore obj event-data))
+                     ;;                      (setf *mouse-down* t)))
+                     ;; (set-on-mouse-up vsl
+                     ;;                    (lambda (obj event-data)
+                     ;;                      (declare (ignore obj event-data))x
+                     ;;                      (setf *mouse-down* nil)))
+                     (set-on-mouse-move vsl
+                                        (lambda (obj event-data)
+                                          (declare (ignore obj))
+                                          (when (getf event-data :shift-key)
+                                            (let ((value (- 100 (getf event-data :y))))
+;;;                                              (format t "vsl~a: ~a~%" (1+ idx) event-data)
+                                              (when value
+                                                (setf (value vsl) value)
+                                                (synchronize-vsl idx value)
+                                              ))))))))
         (setf (width p1) 162)
         (setf (height p1) 100)
         (setf (background-color p1) "w3-black")
@@ -194,7 +207,11 @@
 
 (defun start-orgel-gui ()
   "Start Orgel Gui."
+  (setf *global-connection-hash* (make-hash-table* :test 'equalp))
   (initialize 'on-new-window
               :static-root (merge-pathnames "www/"
                                             (asdf:system-source-directory :cl-orgel-gui)))
   (open-browser))
+
+;;; (start-orgel-gui)
+
