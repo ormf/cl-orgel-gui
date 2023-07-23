@@ -26,9 +26,17 @@
              (declare (ignore connection-id))
              (setf (value (aref (orgel-level-sliders orgel) idx)) val))
            *global-connection-hash*))
-
 (defstruct orgel
   (level-sliders (make-array 16)))
+
+(defparameter *background-color* "#607d8b")
+
+(defparameter *colors* #("#3071A9" "#00ff00" "#ffff00" "#ff00ff" "#00ffff" "#ff0380" "#33d5a4" "#1040d8"))
+
+(defparameter *colors* #("#ffa0ff" "#ffffa0" "#a0ffff" "#ffe0e0" "#a0ffa0" "#e0e0ff" "#efd7e7" "#cccccc"))
+
+(defparameter *vsl-colors*
+  (map 'vector (lambda (idx)  (aref *colors* idx)) '(0 0 1 0 2 1 3 0 4 2 5 1 6 3 7 0)))
 
 #|
 (defun create-form-string (element-type &rest args
@@ -79,13 +87,22 @@
                                         :style "position: absolute;top: 40%; transform: rotate(270deg);"))
 |#
 
-(defun vslider (container &key (value 0.0) (min 0.0) (max 100.0))
+(defun vslider (container &key (value 0.0) (min 0.0) (max 100.0) (color "#3071A9")
+                            (background-color "#fff"))
   (create-form-element
    container :range
+   :class "vslider"
+   :style (format nil "--slider-color: ~A;background-color: ~A" color background-color)
    :value (format nil "~a" value)
    :min (format nil "~a" min)
-   :max (format nil "~a" max)
-   :style "position: relative; margin-top: 45px; margin-bottom: 45px;margin-left: -45px;margin-right: -45px; transform: rotate(270deg);"))
+   :max (format nil "~a" max)))
+
+(defun numbox (container &key (value 0.0) (min 0.0) (max 100.0) (color "#3071A9")
+                            (background-color "#fff"))
+  (create-form-element
+   container :text
+   :class "numberbox"
+   :style (format nil "--text-color: ~A;background-color: ~A" color background-color)))
    
 (defparameter *sliders* nil)
 
@@ -118,11 +135,9 @@
     ;; When doing extensive setup of a page using connection cache
     ;; reduces rountrip traffic and speeds setup.
     (load-css (html-document body) "/css/w3.css")
-    (load-css (html-document body) "/css/custom-gui-elems.css")
+    (load-css (html-document body) "./css/custom-gui-elems.css")
     (setf (gethash connection-id *global-connection-hash*) orgel)
     (with-connection-cache (body)
-      (create-style-block body :content "input[type=range] {height: 18px;-webkit-appearance: none; */margin: 0px 0;width: 100px;height: 10px;-moz-range-track: {width: 100%;height: 10px;cursor: pointer;animate: 0.2s;background: #ffffff;border-radius: 0px;border: 1px solid #000000;}}input[type=range]:focus {outline: none;}input[type=range]::-webkit-slider-runnable-track {width: 100%;height: 10px;cursor: pointer;animate: 0.2s;background: #3071A9;border-radius: 5px;border: 1px solid #000000;}input[type=range]::-webkit-slider-thumb {box-shadow: 1px 1px 1px #000000;border: 1px solid #000000;height: 10px;width: 1px;border-radius: 0px;background: #FFFFFF;cursor: pointer;-webkit-appearance: none;margin-top: -1px;}input[type=range]:focus::-webkit-slider-runnable-track {background: #3071A9;}input[type=range]::-moz-range-track {width: 100%;height: 10px;cursor: pointer;animate: 0.2s;background: #ffffff;border-radius: 0px;border: 1px solid #000000;}input[type=range]::-moz-range-progress {background: #6666cc;height: 10px;}input[type=range]::-moz-range-thumb {display: none;border: none;height: 10px;width: 0px;border-radius: 0px;background: #000;cursor: pointer;}input[type=range]::-ms-track {width: 100%;height: 10px;cursor: pointer;animate: 0.2s;background: transparent;border-color: transparent;color: transparent;}input[type=range]::-ms-fill-lower {background: #3071A9;border: 1px solid #000000;border-radius: 0px;box-shadow: 1px 1px 1px #000000;}input[type=range]::-ms-fill-upper {background: #ffffff;border: 1px solid #000000;border-radius: 0px;box-shadow: 1px 1px 1px #000000;}input[type=range]::-ms-thumb {margin-top: 1px;border: none;height: 10px;width: 1px;border-radius: 0px;background: #FFFFFF;cursor: pointer;}input[type=range]:focus::-ms-fill-lower {background: #3071A9;}input[type=range]:focus::-ms-fill-upper {background: #ffffff}")
-
       (let* (;;last-tab
              ;; Note: Since the there is no need to use the tmp objects
              ;;       we reuse the same symbol name (tmp) even though
@@ -138,8 +153,10 @@
              (tmp (create-br body))
              (p1  (create-div body))
              ;; Create form for panel 1
-             (f1  (create-form p1))
-             (vsliders (v-collect (n 16) (vslider f1))))
+             (tmp (create-br p1))
+             (f1 (create-form p1))
+             (ms1  (create-div p1 :style "border: none;"))
+             (vsliders (v-collect (n 16) (vslider ms1 :background-color *background-color* :color (aref *vsl-colors* n)))))
         (declare (ignore tmp))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
         ;; Panel 1 contents
@@ -184,7 +201,7 @@
         (setf (width p1) 162)
         (setf (height p1) 100)
         (setf (background-color p1) "w3-black")
-        (set-border p1 :thin :solid :black)
+;;;        (set-border p1 :thin :solid :black)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
         ;; Panel 2 contents
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -209,9 +226,10 @@
   "Start Orgel Gui."
   (setf *global-connection-hash* (make-hash-table* :test 'equalp))
   (initialize 'on-new-window
-              :static-root (merge-pathnames "www/"
+              :static-root (merge-pathnames "./www/"
                                             (asdf:system-source-directory :cl-orgel-gui)))
   (open-browser))
 
 ;;; (start-orgel-gui)
 
+;;; (create-form-element)
