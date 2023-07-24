@@ -1,13 +1,3 @@
-:root {
-    --slider-color: #3071A9;
-    --slider-background: #444;
-    /* --slider-background: #ff0000; */
-}
-
-body {
-    font-size: 10px;
-}
-
 .vslider {
     position: relative;
     margin-top: 45px;
@@ -17,23 +7,10 @@ body {
     transform: rotate(270deg);
 }
 
-.numbox {
-    position: relative;
-    width: 40px;
-    height: 15px;
-    margin-top: 5px;
-    margin-bottom: 5px;
-    margin-left: 0px;
-    margin-right: 0px;
-    border: solid 1px;
-    text-align: center;
-}
-
 input[type=range] {
-    background-color: val(--slider-background);
     height: 18px;
     -webkit-appearance: none;
-    /* margin: 0px 0; */
+    */margin: 0px 0;
     width: 100px;
     height: 10px;
     -moz-range-track: {
@@ -41,6 +18,7 @@ input[type=range] {
         height: 10px;
         cursor: pointer;
         animate: 0.2s;
+        background: #ffffff;
         border-radius: 0px;
         border: 1px solid #000000;
     }
@@ -55,7 +33,7 @@ input[type=range]::-webkit-slider-runnable-track {
     height: 10px;
     cursor: pointer;
     animate: 0.2s;
-    background: var(--slider-color);
+    background: #3071A9;
     border-radius: 5px;
     border: 1px solid #000000;
 }
@@ -66,28 +44,27 @@ input[type=range]::-webkit-slider-thumb {
     height: 10px;
     width: 1px;
     border-radius: 0px;
-    background: val(--slider-background);
+    background: #FFFFFF;
     cursor: pointer;
     -webkit-appearance: none;
     margin-top: -1px;
 }
 
-input[type=range]:focus::-webkit-slider-runnable-track {
-    background: var(--slider-color);
-}
+input[type=range]:focus::-webkit-slider-runnable-track {background: #3071A9;
+                                                       }
 
 input[type=range]::-moz-range-track {
     width: 100%;
     height: 10px;
     cursor: pointer;
     animate: 0.2s;
-    background: val(--slider-background);
+    background: #ffffff;
     border-radius: 0px;
     border: 1px solid #000000;
 }
 
 input[type=range]::-moz-range-progress {
-    background: var(--slider-color);
+    background: #6666cc;
     height: 10px;
 }
 
@@ -112,14 +89,14 @@ input[type=range]::-ms-track {
 }
 
 input[type=range]::-ms-fill-lower {
-    background: var(--slider-color);
+    background: #3071A9;
     border: 1px solid #000000;
     border-radius: 0px;
     box-shadow: 1px 1px 1px #000000;
 }
 
 input[type=range]::-ms-fill-upper {
-    background: val(--slider-background);
+    background: #ffffff;
     border: 1px solid #000000;
     border-radius: 0px;
     box-shadow: 1px 1px 1px #000000;
@@ -131,14 +108,14 @@ input[type=range]::-ms-thumb {
     height: 10px;
     width: 1px;
     border-radius: 0px;
-    background: val(--slider-background);
+    background: #FFFFFF;
     cursor: pointer;
 }
 
 input[type=range]:focus::-ms-fill-lower {
-    background: var(--slider-color);
+    background: #3071A9;
 }
 
 input[type=range]:focus::-ms-fill-upper {
-    background: val(--slider-background)
+    background: #ffffff
 }
