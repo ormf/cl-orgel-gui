@@ -45,19 +45,20 @@
 
 (defun synchronize-vsl (idx val self)
   (setf (aref (orgel-level-sliders *curr-orgel-state*) idx) val)
-  (maphash (lambda (connection-id orgel)
+  (maphash (lambda (connection-id connection-hash)
              (declare (ignore connection-id))
-             (let ((elem (aref (orgel-level-sliders orgel) idx)))
+             (let ((elem (aref (orgel-level-sliders (gethash "orgel" connection-hash))
+                               idx)))
                (unless (equal self elem) (setf (value elem) val))))
-           *global-connection-hash*))
+           clog-connection::*connection-data*))
 
 (defun synchronize-numbox (val self)
   (setf (orgel-numbox *curr-orgel-state*) val)
-  (maphash (lambda (connection-id orgel)
+  (maphash (lambda (connection-id connection-hash)
              (declare (ignore connection-id))
-             (let ((elem (orgel-numbox orgel)))
+             (let ((elem (orgel-numbox (gethash "orgel" connection-hash))))
                (unless (equal self elem) (setf (value elem) val))))
-           *global-connection-hash*))
+           clog-connection::*connection-data*))
 
 (defun vslider (container &key (value 0.0) (min 0.0) (max 100.0) (color "#3071A9")
                             (background-color "#fff"))
@@ -77,7 +78,7 @@
            container :text
            :class "numbox"
            :value (format nil "~,1f" value)
-           :style (format nil "--text-color: ~A;background-color: ~A" color background-color))))
+           :style (format nil "--numbox-selected-foreground: ~A;--text-color: ~A;background-color: ~A" "green" color background-color))))
 ;;;    (clog::unbind-event-script elem "onmousedown")
     (set-on-mouse-down
      elem
@@ -122,17 +123,20 @@
     (set-on-window-can-size about (lambda (obj)
                                     (declare (ignore obj))()))))
 
+
 (defun on-new-window (body)
-  (let ((connection-id (new-connection-id))
-        (orgel (make-orgel)))
+  (let ((orgel (make-orgel))
+        connection-id)
     (clog-gui-initialize body)
-    (load-script (html-document body) "js/numberbox.js")
+    (setf connection-id (clog::connection-id body))
+;;;    (load-script (html-document body) "js/numberbox.js")
     (setf (title (html-document body)) "Orgel Sliders")
     ;; When doing extensive setup of a page using connection cache
     ;; reduces rountrip traffic and speeds setup.
     (load-css (html-document body) "/css/w3.css")
     (load-css (html-document body) "./css/custom-gui-elems.css")
-    (setf (gethash connection-id *global-connection-hash*) orgel)
+    (setf (gethash "orgel" (gethash connection-id clog-connection::*connection-data*))
+          orgel)
     (with-connection-cache (body)
       (let* (p1 nbs1 nb1 ms1 vsliders)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -150,7 +154,10 @@
         (setf nbs1 (create-div p1)) ;;; container for numberbox(es)
         (setf nb1 (numbox nbs1))
         (setf ms1  (create-div p1 :style "border: none;")) ;;; container vor multisliders
-        (setf vsliders (v-collect (n 16) (vslider ms1 :background-color *background-color* :color (aref *vsl-colors* n))))
+        (setf vsliders (v-collect (n 16) (vslider
+                                          ms1
+                                          :background-color *background-color*
+                                          :color (aref *vsl-colors* n))))
         (setf (value nb1) (orgel-numbox *curr-orgel-state*))
         (setf (orgel-numbox orgel) nb1)
         (loop for vsl in vsliders
@@ -209,7 +216,8 @@
         ;;   (declare (ignore icon-item full-screen)))
         ))
     (run body)
-    (remhash connection-id *global-connection-hash*)))
+;;;    (remhash connection-id *global-connection-hash*)
+    ))
 
 (defun start-orgel-gui ()
   "Start Orgel Gui."

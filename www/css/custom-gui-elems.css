@@ -1,11 +1,38 @@
 :root {
     --slider-color: #3071A9;
     --slider-background: #444;
+    --numbox-selected-background: #3071A9;
+    --numbox-selected-foreground: white;
     /* --slider-background: #ff0000; */
 }
 
 body {
     font-size: 10px;
+}
+
+input[type=text]::-moz-selection { /* Code for Firefox */
+    color: val(--numbox-selected-foreground);
+    background-color: val(--numbox-selected-background);
+}
+
+input[type=text] {
+  color: val(--numbox-selected-foreground);
+  background-color: val(--numbox-selected-background);
+}
+
+input[type=text]::selection {
+  color: val(--numbox-selected-foreground);
+  background-color: val(--numbox-selected-background);
+}
+
+.numbox::-moz-selection { /* Code for Firefox */
+  color: val(--numbox-selected-foreground);
+  background-color: val(--numbox-selected-background);
+}
+
+.numbox::selection {
+  color: val(--numbox-selected-foreground);
+  background-color: val(--numbox-selected-background);
 }
 
 .vslider {
@@ -18,6 +45,8 @@ body {
 }
 
 .numbox {
+    --numbox-selected-foreground: green;
+    --numbox-selected-background: white;
     position: relative;
     width: 40px;
     height: 15px;
@@ -73,7 +102,7 @@ input[type=range]::-webkit-slider-thumb {
 }
 
 input[type=range]:focus::-webkit-slider-runnable-track {
-    background: var(--slider-color);
+    background: var(--slider-background);
 }
 
 input[type=range]::-moz-range-track {
