@@ -52,7 +52,7 @@ UserSelect
                 vsl
                 (lambda (obj event-data)
                   (declare (ignore obj))
-                  (when (getf event-data :shift-key)
+                  (when (or (getf event-data :shift-key))
                     (let ((val (- 100 (getf event-data :y))))
                       (when val
                         (setf (value vsl) val)
@@ -90,7 +90,9 @@ UserSelect
                            (selected-background "lightblue")
                            (value 0)
                            label
-                           label-style)
+                           label-style
+                           slot
+                           receiver-fn)
   (let ((elem
           (create-form-element
            container :text
@@ -133,7 +135,7 @@ UserSelect
            (unless (numberp (read-from-string val))
              (setf val (format nil "~,1f" startvalue)))
            (setf (value elem) val)
-           (synchronize-numbox val elem))
+           (funcall receiver-fn slot val elem))
          (blur elem))))
     (set-on-mouse-up
      elem

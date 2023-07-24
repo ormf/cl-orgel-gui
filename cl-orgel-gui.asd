@@ -11,6 +11,7 @@
   :depends-on (#:clog #:orm-utils #:uuid)
   :serial t
   :components ((:file "package")
+               (:file "utils")
                (:file "widget-defs")
                (:file "cl-orgel-gui")
                (:file "init")))

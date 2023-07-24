@@ -21,17 +21,18 @@
 (in-package :cl-orgel-gui)
 
 (defstruct orgel
-  (numbox "0.0")
+  (ramp-up "29.0")
+  (ramp-down "29.0")
+  (exp-base "0.0")
+  (base-freq "0.0")
+  (min-amp "0.0")
+  (max-amp "1.0")
   (level-sliders (make-array 16)))
 
 (defparameter *curr-orgel-state*
-  (make-orgel :level-sliders (make-array 16 :initial-element "0.0")
-              :numbox "0"))
+  (make-orgel :level-sliders (make-array 16 :initial-element "0.0")))
 
 (defparameter *background-color* "#607d8b")
-
-(defparameter *colors* #("#3071A9" "#00ff00" "#ffff00" "#ff00ff" "#00ffff" "#ff0380" "#33d5a4" "#1040d8"))
-
 (defparameter *colors* #("#ffa0ff" "#ffffa0" "#a0ffff" "#ffe0e0" "#a0ffa0" "#e0e0ff" "#efd7e7" "#cccccc"))
 
 (defparameter *vsl-colors*
@@ -54,52 +55,16 @@
                                (unless (equal self elem) (setf (value elem) val-string))))))
              clog-connection::*connection-data*)))
 
-(defun synchronize-numbox (val self)
+(defun synchronize-numbox (slot val self)
   (let ((val-string (ensure-string val)))
-    (setf (orgel-numbox *curr-orgel-state*) val-string)
+    (setf (slot-value *curr-orgel-state* slot) val-string)
     (maphash (lambda (connection-id connection-hash)
                (declare (ignore connection-id))
                (let ((orgel (gethash "orgel" connection-hash)))
                  (when orgel
-                   (let ((elem (orgel-numbox (gethash "orgel" connection-hash))))
+                   (let ((elem (funcall (symbol-function slot) (gethash "orgel" connection-hash))))
                      (unless (equal self elem) (setf (value elem) val-string))))))
              clog-connection::*connection-data*)))
-
-
-
-#|
-(defun vslider (container &key (value 0.0) (min 0.0) (max 100.0) (color "#3071A9")
-                            (background-color "#fff"))
-  (create-form-element
-   container :range
-   :class "vslider"
-   :style (format nil "--slider-color: ~A;background-color: ~A" color background-color)
-   :value (format nil "~a" value)
-   :min (format nil "~a" min)
-   :max (format nil "~a" max)))
-|#
-
-(defun ensure-string (token)
-  (if (stringp token) token (format nil "~S" token)))
-
-(defun on-help-about (obj)
-  (let* ((about (create-gui-window obj
-                                   :title   "About"
-                                   :content "<div class='w3-black'>
-                                         <center><img src='/img/clogwicon.png'></center>
-                                         <center>clog-plunger</center></div>
-                                         <div><p><center>A New App</center>
-                                         <center>(c) 2022 - Ungefähr</center></p></div>"
-                                   :hidden  t
-                                   :width   200
-                                   :height  200)))
-    (window-center about)
-    (setf (visiblep about) t)
-    (set-on-window-can-size about (lambda (obj)
-                                    (declare (ignore obj))()))))
-
-
-(defparameter *vsliders* nil)
 
 (defun on-new-window (body)
   (let ((orgel (make-orgel))
@@ -108,12 +73,12 @@
     (setf connection-id (clog::connection-id body))
 ;;;    (load-script (html-document body) "js/numberbox.js")
     (setf (title (html-document body)) "Orgel Sliders")
-    ;; When doing extensive setup of a page using connection cache
-    ;; reduces rountrip traffic and speeds setup.
     (load-css (html-document body) "/css/w3.css")
     (load-css (html-document body) "./css/custom-gui-elems.css")
     (setf (gethash "orgel" (gethash connection-id clog-connection::*connection-data*))
           orgel)
+    ;; When doing extensive setup of a page using connection cache
+    ;; reduces rountrip traffic and speeds setup.
     (with-connection-cache (body)
       (let* (p1 nbs1 nb1 vsliders)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -126,20 +91,20 @@
         ;;                       "#ff00ff"))
         (create-br body)
         (setf p1  (create-div body :style "margin-left: 20px;"))
-        ;; Create form for panel 1
-;;;        (create-br p1)
+;;;        (setf ms1  (create-div p1 :style "color: transparent; border: none;width: 100px;height: 100px;display: flex;")) ;;; container als Platzhalter
         (setf nbs1 (create-div p1)) ;;; container for numberbox(es)
-        (setf nb1 (numbox nbs1 :label "freq" :color "black" :background-color "#fff"))
-;;;        (setf ms1  (create-div p1 :style "color: transparent; border: none;width: 100px;height: 100px;display: flex;")) ;;; container der multisliders
-        ;; (setf vsliders (v-collect (n 16) (vslider
-        ;;                                   ms1
-        ;;                                   :background-color *background-color*
-        ;;                                   :color (aref *vsl-colors* n)
-        ;;                                   :thumbcolor "transparent")))
+        ;; (setf nb-freq (numbox nbs1 :label "freq" :color "black" :background-color "#fff" :receiver-fn #'synchronize-numbox :slot 'orgel-freq))
+        ;; (setf (orgel-freq orgel) nb-freq)
+        ;; (setf (value nb-freq) (orgel-freq *curr-orgel-state*))
+        (init-numbox :ramp-up nbs1)
+        (init-numbox :ramp-down nbs1)
+        (init-numbox :exp-base nbs1)
+        (init-numbox :base-freq nbs1)
+        (init-numbox :max-amp nbs1)
+        (init-numbox :min-amp nbs1)
         (setf vsliders
               (multi-vslider p1 :num 16 :width 160 :colors *vsl-colors* :background-color "transparent"
                                          :receiver-fn #'synchronize-vsl))
-
         (create-br p1)
         (multi-vslider p1 :colors *vsl-colors* :background-color "transparent")
         (loop for vsl in vsliders
@@ -148,39 +113,14 @@
                    (setf (value vsl)
                          (aref (orgel-level-sliders *curr-orgel-state*) idx))
                    (setf (aref (orgel-level-sliders orgel) idx) vsl)))
-        (setf (value nb1) (orgel-numbox *curr-orgel-state*))
-        (setf (orgel-numbox orgel) nb1)
 
-;;;        (setf (width p1) 162)
-;;;        (setf (height p1) 100)
-;;;        (setf (background-color p1) "w3-black")
 ;;;        (set-border p1 :thin :solid :black)
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-        ;; Panel 2 contents
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-        ;; Panel 3 contents
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-        ;; Tab functionality
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
         (add-class body "w3-blue-grey") ;;; background color
-        (add-class nb1 "w3-text-black") ;;; text style
-        ;; (let* ((menu-bar    (create-gui-menu-bar body))
-        ;;        (icon-item   (create-gui-menu-icon menu-bar :on-click 'on-help-about))
-        ;;        (full-screen (create-gui-menu-full-screen menu-bar)))
-        ;;   (declare (ignore icon-item full-screen)))
-        ))
-    (run body)
-;;;    (remhash connection-id *global-connection-hash*)
-    ))
+        )) ;;; text style))
 
+        (run body)))
 
-
-
-(defun start-orgel-gui ()
+    (defun start-orgel-gui ()
   "Start Orgel Gui."
   (setf *global-connection-hash* (make-hash-table* :test 'equalp))
   (initialize 'on-new-window
@@ -188,6 +128,6 @@
                                             (asdf:system-source-directory :cl-orgel-gui)))
   (open-browser))
 
-;;; (start-orgel-gui)
+;;; (start-orgel-gui)q
 
 ;;; (create-form-element)
