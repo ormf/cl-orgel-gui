@@ -19,10 +19,14 @@
 ;;; **********************************************************************
 
 (in-package :cl-orgel-gui)
-(setf (orgel-numbox *curr-orgel-state*) "0")
+
 (defstruct orgel
-  (numbox 0.0)
+  (numbox "0.0")
   (level-sliders (make-array 16)))
+
+(defparameter *curr-orgel-state*
+  (make-orgel :level-sliders (make-array 16 :initial-element "0.0")
+              :numbox "0"))
 
 (defparameter *background-color* "#607d8b")
 
@@ -33,9 +37,6 @@
 (defparameter *vsl-colors*
   (map 'vector (lambda (idx)  (aref *colors* idx)) '(0 0 1 0 2 1 3 0 4 2 5 1 6 3 7 0)))
 
-(defparameter *curr-orgel-state*
-  (make-orgel :level-sliders (make-array 16 :initial-element 0.0)))
-
 (defvar *global-connection-hash*
   (make-hash-table* :test 'equalp)
   "map connection to orgel form elems.")
@@ -44,24 +45,25 @@
   (format nil "~a" (uuid:make-v1-uuid)))
 
 (defun synchronize-vsl (idx val self)
-  (setf (aref (orgel-level-sliders *curr-orgel-state*) idx) val)
-  (maphash (lambda (connection-id connection-hash)
-             (declare (ignore connection-id))
-             (let ((orgel (gethash "orgel" connection-hash)))
-               (when orgel (let ((elem (aref (orgel-level-sliders orgel)
-                                             idx)))
-                             (unless (equal self elem) (setf (value elem) val))))))
-           clog-connection::*connection-data*))
+  (let ((val-string (ensure-string val)))
+    (setf (aref (orgel-level-sliders *curr-orgel-state*) idx) val-string)
+    (maphash (lambda (connection-id connection-hash)
+               (declare (ignore connection-id))
+               (let ((orgel (gethash "orgel" connection-hash)))
+                 (when orgel (let ((elem (aref (orgel-level-sliders orgel) idx)))
+                               (unless (equal self elem) (setf (value elem) val-string))))))
+             clog-connection::*connection-data*)))
 
 (defun synchronize-numbox (val self)
-  (setf (orgel-numbox *curr-orgel-state*) val)
-  (maphash (lambda (connection-id connection-hash)
-             (declare (ignore connection-id))
-             (let ((orgel (gethash "orgel" connection-hash)))
-               (when orgel
-                 (let ((elem (orgel-numbox (gethash "orgel" connection-hash))))
-                   (unless (equal self elem) (setf (value elem) val))))))
-           clog-connection::*connection-data*))
+  (let ((val-string (ensure-string val)))
+    (setf (orgel-numbox *curr-orgel-state*) val-string)
+    (maphash (lambda (connection-id connection-hash)
+               (declare (ignore connection-id))
+               (let ((orgel (gethash "orgel" connection-hash)))
+                 (when orgel
+                   (let ((elem (orgel-numbox (gethash "orgel" connection-hash))))
+                     (unless (equal self elem) (setf (value elem) val-string))))))
+             clog-connection::*connection-data*)))
 
 
 
@@ -97,6 +99,8 @@
                                     (declare (ignore obj))()))))
 
 
+(defparameter *vsliders* nil)
+
 (defun on-new-window (body)
   (let ((orgel (make-orgel))
         connection-id)
@@ -111,7 +115,7 @@
     (setf (gethash "orgel" (gethash connection-id clog-connection::*connection-data*))
           orgel)
     (with-connection-cache (body)
-      (let* (p1 nbs1 nb1 ms1 vsliders)
+      (let* (p1 nbs1 nb1 vsliders)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
         ;; Panel 1 contents
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -125,51 +129,28 @@
         ;; Create form for panel 1
 ;;;        (create-br p1)
         (setf nbs1 (create-div p1)) ;;; container for numberbox(es)
-        (setf nb1 (numbox nbs1 :label "freq"))
-        (setf ms1  (create-div p1 :style "color: transparent; border: none;width: 100px;height: 100px;display: flex;")) ;;; container der multisliders
-        (setf vsliders (v-collect (n 16) (vslider
-                                          ms1
-                                          :background-color *background-color*
-                                          :color (aref *vsl-colors* n)
-                                          :thumbcolor "transparent")))
+        (setf nb1 (numbox nbs1 :label "freq" :color "black" :background-color "#fff"))
+;;;        (setf ms1  (create-div p1 :style "color: transparent; border: none;width: 100px;height: 100px;display: flex;")) ;;; container der multisliders
+        ;; (setf vsliders (v-collect (n 16) (vslider
+        ;;                                   ms1
+        ;;                                   :background-color *background-color*
+        ;;                                   :color (aref *vsl-colors* n)
+        ;;                                   :thumbcolor "transparent")))
+        (setf vsliders
+              (multi-vslider p1 :num 16 :width 160 :colors *vsl-colors* :background-color "transparent"
+                                         :receiver-fn #'synchronize-vsl))
+
         (create-br p1)
         (multi-vslider p1 :colors *vsl-colors* :background-color "transparent")
-
-        (setf (value nb1) (orgel-numbox *curr-orgel-state*))
-        (setf (orgel-numbox orgel) nb1)
         (loop for vsl in vsliders
               for idx from 0
               do (progn
-                   (setf (value vsl) (aref (orgel-level-sliders *curr-orgel-state*) idx))
-;;;                   (setf (width vsl) 100)
-;;;                   (setf (height vsl) 10)
-                   (let ((idx idx) (vsl vsl)) ;;; close around function to catch the current value for idx and vsl
-                     (setf (aref (orgel-level-sliders orgel) idx) vsl)
-                     (set-on-input vsl
-                                   (lambda (obj)
-                                     (declare (ignore obj))
-                                     (let ((val (value vsl)))
-;;;                                       (format t "vsl~a: ~a~%" (1+ idx) val)
-                                       (synchronize-vsl idx val vsl))))
-                     ;; (set-on-mouse-down vsl
-                     ;;                    (lambda (obj event-data)
-                     ;;                      (declare (ignore obj event-data))
-                     ;;                      (setf *mouse-down* t)))
-                     ;; (set-on-mouse-up vsl
-                     ;;                    (lambda (obj event-data)
-                     ;;                      (declare (ignore obj event-data))x
-                     ;;                      (setf *mouse-down* nil)))
-                     (set-on-mouse-move
-                      vsl
-                      (lambda (obj event-data)
-                        (declare (ignore obj))
-                        (when (getf event-data :shift-key)
-                          (let ((value (- 100 (getf event-data :y))))
-;;;                                              (format t "vsl~a: ~a~%" (1+ idx) event-data)
-                            (when value
-                              (setf (value vsl) value)
-                              (synchronize-vsl idx value vsl)
-                              ))))))))
+                   (setf (value vsl)
+                         (aref (orgel-level-sliders *curr-orgel-state*) idx))
+                   (setf (aref (orgel-level-sliders orgel) idx) vsl)))
+        (setf (value nb1) (orgel-numbox *curr-orgel-state*))
+        (setf (orgel-numbox orgel) nb1)
+
 ;;;        (setf (width p1) 162)
 ;;;        (setf (height p1) 100)
 ;;;        (setf (background-color p1) "w3-black")
@@ -195,6 +176,9 @@
     (run body)
 ;;;    (remhash connection-id *global-connection-hash*)
     ))
+
+
+
 
 (defun start-orgel-gui ()
   "Start Orgel Gui."

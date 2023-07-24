@@ -1,4 +1,6 @@
 :root {
+    --numbox-select: auto;
+    --border-right-width: 0px;
     --slider-color: #3071A9;
     --slider-background: #444;
     --slider-thumb: black;
@@ -11,29 +13,30 @@ body {
     font-size: 10px;
 }
 
-input[type=text]::-moz-selection { /* Code for Firefox */
-    color: var(--numbox-selected-foreground);
-    background-color: var(--numbox-selected-background);
-}
+/* input[type=text]::-moz-selection { /\* Code for Firefox *\/ */
+/*     color: var(--numbox-selected-foreground); */
+/*     background-color: var(--numbox-selected-background); */
+/* } */
 
 input[type=text] {
-  color: var(--numbox-selected-foreground);
-  background-color: var(--numbox-selected-background);
+    /* color: var(--numbox-selected-foreground); */
+    /* background-color: var(--numbox-selected-background); */
 }
 
-input[type=text]::selection {
-  color: var(--numbox-selected-foreground);
-  background-color: var(--numbox-selected-background);
-}
+/* input[type=text]::selection { */
+/*     color: var(--numbox-selected-foreground); */
+/*     background-color: var(--numbox-selected-background); */
+/* } */
 
-.numbox::-moz-selection { /* Code for Firefox */
-  color: var(--numbox-selected-foreground);
-  background-color: var(--numbox-selected-background);
-}
+/* .numbox::-moz-selection { /\* Code for Firefox *\/ */
+/*     color: var(--numbox-selected-foreground); */
+/*     background-color: var(--numbox-selected-background); */
+/* } */
 
 .numbox::selection {
-  color: var(--numbox-selected-foreground);
-  background-color: var(--numbox-selected-background);
+    user-select: none;
+    color: var(--numbox-selected-foreground); 
+    background-color: var(--numbox-selected-background);
 }
 
 .vslider {
@@ -46,8 +49,10 @@ input[type=text]::selection {
 }
 
 .numbox {
-    --numbox-selected-foreground: green;
-    --numbox-selected-background: white;
+    --numbox-selected-foreground: black;
+    --numbox-selected-background: lightblue;
+    color: black;
+    background-color: white;
     position: relative;
     width: 40px;
     height: 15px;
@@ -71,7 +76,24 @@ input[type=range] {
         cursor: pointer;
         animate: 0.2s;
         border-radius: 0px;
-        border: 1px solid #000000;
+        border: none;
+        /* border-top-width: 1px; */
+        /* border-top-style: solid; */
+        /* border-top-color: rgb(0, 0, 0); */
+        /* border-right-width: 1px; */
+        /* border-right-style: solid; */
+        /* border-right-color: rgb(0, 0, 0); */
+        /* border-bottom-width: 1px; */
+        /* border-bottom-style: solid; */
+        /* border-bottom-color: rgb(0, 0, 0); */
+        /* border-left-width: 0px; */
+        /* border-left-style: solid; */
+        /* border-left-color: rgb(0, 0, 0); */
+        /* border-image-outset: 0; */
+        /* border-image-repeat: stretch; */
+        /* border-image-slice: 100%; */
+        /* border-image-source: none; */
+        /* border-image-width: 1; */
     }
 }
 
@@ -113,6 +135,8 @@ input[type=range]::-moz-range-track {
     background: var(--slider-background);
     border-radius: 0px;
     border: 1px solid #000000;
+    border-left-width: 1px;
+    border-right-width: var(--border-right-width);
 }
 
 input[type=range]::-moz-range-progress {
