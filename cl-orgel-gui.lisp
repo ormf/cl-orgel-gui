@@ -62,7 +62,7 @@
                (declare (ignore connection-id))
                (let ((orgel (gethash "orgel" connection-hash)))
                  (when orgel
-                   (let ((elem (funcall (symbol-function slot) (gethash "orgel" connection-hash))))
+                   (let ((elem (slot-value (gethash "orgel" connection-hash) slot)))
                      (unless (equal self elem) (setf (value elem) val-string))))))
              clog-connection::*connection-data*)))
 

@@ -123,8 +123,9 @@ UserSelect
                     (setf (style elem "--numbox-selected-foreground") color)
                     (setf (style elem "--numbox-selected-background") background-color))
                   (setf mouse-dragged t)
-                  (setf (value elem) (format nil "~,1f" val))
-                  (synchronize-numbox(format nil "~,1f" val) elem)
+                  (let ((val-string (format nil "~,1f" val)))
+                    (setf (value elem) val-string)
+                    (funcall receiver-fn slot val-string elem))
                   (setf last-y y last-val val)))))))))
     (set-on-key-up
      elem
