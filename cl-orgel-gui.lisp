@@ -71,8 +71,9 @@
         connection-id)
     (clog-gui-initialize body)
     (setf connection-id (clog::connection-id body))
-;;;    (load-script (html-document body) "js/numberbox.js")
+    (load-script (html-document body) "js/vumeter.js")
     (setf (title (html-document body)) "Orgel Sliders")
+    (add-class body "w3-blue-grey") ;;; background color
     (load-css (html-document body) "/css/w3.css")
     (load-css (html-document body) "./css/custom-gui-elems.css")
     (setf (gethash "orgel" (gethash connection-id clog-connection::*connection-data*))
@@ -80,7 +81,7 @@
     ;; When doing extensive setup of a page using connection cache
     ;; reduces rountrip traffic and speeds setup.
     (with-connection-cache (body)
-      (let* (p1 nbs1 nb1 vsliders)
+      (let* (p1 p2 nbs1 nbs2 tg1 tg2 vsliders vu1)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
         ;; Panel 1 contents
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -92,34 +93,57 @@
         (create-br body)
         (setf p1  (create-div body :style "margin-left: 20px;"))
 ;;;        (setf ms1  (create-div p1 :style "color: transparent; border: none;width: 100px;height: 100px;display: flex;")) ;;; container als Platzhalter
-        (setf nbs1 (create-div p1)) ;;; container for numberbox(es)
+        (setf p2 (create-div p1 :style "width: 160px;height: 60px;display: flex;justify-content: space-between;"))
+        (setf nbs1 (create-div p2 :style "width: 75px;font-size: 6pt;display: flex;flex-direction: column;justify-content: space-between;")) ;;; container for numberbox(es)
+        (setf nbs2 (create-div p2 :style "width: 73px; font-size: 6pt;display: flex;flex-direction: column;justify-content: space-between;")) ;;; container for numberbox(es)
         ;; (setf nb-freq (numbox nbs1 :label "freq" :color "black" :background-color "#fff" :receiver-fn #'synchronize-numbox :slot 'orgel-freq))
         ;; (setf (orgel-freq orgel) nb-freq)
         ;; (setf (value nb-freq) (orgel-freq *curr-orgel-state*))
-        (init-numbox :ramp-up nbs1)
-        (init-numbox :ramp-down nbs1)
-        (init-numbox :exp-base nbs1)
-        (init-numbox :base-freq nbs1)
-        (init-numbox :max-amp nbs1)
-        (init-numbox :min-amp nbs1)
-        (setf vsliders
+;;        (setf d1 (create-div nbs1 :style "display: flex;align-items: baseline;justify-content: space-between;"))
+        (init-numboxes
+         (:ramp-up :ramp-down :exp-base :base-freq :max-amp :min-amp)
+         (nbs1 nbs1 nbs1 nbs2 nbs2 nbs2)
+         :size 6)
+        (setf tg1 (create-div nbs1 :style "display: flex;justify-content: right;"))
+
+        (toggle tg1 :content "phase" :toggle-content "inv" :size 6 :background "lightgreen" :selected-background "red"
+                   :selected-foreground "white" :slot :phase
+                   :receiver-fn (lambda (slot state obj) (declare (ignore obj))
+                                  (format t "~S clicked, state: ~a!~%" slot state)))
+        (setf tg2 (create-div nbs2 :style "display: flex;justify-content: right;"))
+        (toggle tg2 :content "bandp" :toggle-content "notch" :size 6 :background "lightgreen" :selected-background "orange"
+                        :style "align-content: right;" :slot :bandp
+                        :receiver-fn (lambda (slot state obj) (declare (ignore obj))
+                                       (format t "~S clicked, state: ~a!~%" slot state)))        (setf vsliders
               (multi-vslider p1 :num 16 :width 160 :colors *vsl-colors* :background-color "transparent"
                                          :receiver-fn #'synchronize-vsl))
+        (hslider p1 :background-color "#444" :color "#444" :thumbcolor "orange" :height "8px" :width "160px")
         (create-br p1)
-        (multi-vslider p1 :colors *vsl-colors* :background-color "transparent")
+;;;        (multi-vslider p1 :colors *vsl-colors* :background-color "transparent")
         (loop for vsl in vsliders
               for idx from 0
               do (progn
                    (setf (value vsl)
                          (aref (orgel-level-sliders *curr-orgel-state*) idx))
                    (setf (aref (orgel-level-sliders orgel) idx) vsl)))
+        (setf vu1 (create-canvas p1 :class "vumeter" :width "10px" :height "100px" :data-val 30))
+        
+        (js-execute body (format nil "vumeter(~A, {\"boxCount\": 15, \"boxGapFraction\": 0.25, \"max\":100, })"
+                                 (jquery vu1)))
+;;;        (jquery-execute vu1 (format nil "setAttribute('data-val', '~A')" (escape-string 45)))
+
+;;;        (js-execute (jquery vu1) (format nil "setAttribute('data-val', '~A')" (escape-string 45)))
+
+        (setf (attribute vu1 "data-val") 15)
+;;;        (setf (property vu1 :width) 150)
 
 ;;;        (set-border p1 :thin :solid :black)
-        (add-class body "w3-blue-grey") ;;; background color
         )) ;;; text style))
+))
 
-        (run body)))
+(setf (width))
 
+;;; (setf (width vu1))
     (defun start-orgel-gui ()
   "Start Orgel Gui."
   (setf *global-connection-hash* (make-hash-table* :test 'equalp))
@@ -128,6 +152,9 @@
                                             (asdf:system-source-directory :cl-orgel-gui)))
   (open-browser))
 
-;;; (start-orgel-gui)q
+;;; (start-orgel-gui)
 
 ;;; (create-form-element)
+
+
+(create-context2d disp)

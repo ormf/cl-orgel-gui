@@ -32,7 +32,7 @@ UserSelect
 (defun multi-vslider (container &key (num 8) (width 80) (height 100) (background-color "white") (colors #("lightblue")) (thumbcolor "transparent")
                                   receiver-fn)
   (let* ((msl-container (create-div container
-                                    :style (format nil "color: transparent; background-color: transparent;border: none;width: ~Apx;height: ~Apx;display: flex;" width height)))
+                                    :style (format nil "color: transparent; background-color: transparent;border: none;width: ~Apx;height: ~Apx;display: flex;padding: 0.5pt" width height)))
          (vsliders (v-collect (n num) (vslider
                                        msl-container
                                        :border-right-width (if (< n (1- num)) 0 1)
@@ -68,7 +68,60 @@ UserSelect
           (create-form-element
            container :range
            :class "vslider"
-           :style (format nil "--border-right-width: ~Apx;--slider-thumb: ~A;--slider-color: ~A;--slider-background: ~A;min-width: 0;flex: 1 1 0;height: 100%;"
+           :style (format nil "--border-right-width: ~Apx;--slider-thumb: ~A;--slider-color: ~A;--slider-background: ~A;min-width: 0;flex: 1 1 0;height: 100%;--slider-thumb-height: thin;slider-thumb-width: 100%;"
+                          border-right-width thumbcolor color background-color)
+           :value (format nil "~a" value)
+           :min (format nil "~a" min)
+           :max (format nil "~a" max)
+           :orient "vertical")))
+    (if receiver-fn
+        (set-on-input
+         vsl
+         (lambda (obj)
+           (declare (ignore obj))
+           (let ((val (value vsl)))
+;;;                                       (format t "vsl~a: ~a~%" (1+ idx) val)
+             (funcall receiver-fn val vsl)))))
+    vsl))
+
+(defun hslider
+    (container &key (value 0.0) (min 0.0) (max 100.0) (thumbcolor "black") (color "#3071A9")
+                 (border-right-width 1) (background-color "#fff") width height
+                 receiver-fn)
+    "horizontal slider including behaviour."
+  (let ((hsl
+          (create-form-element
+           container :range
+           :class "hslider"
+           :style (format nil "--border-right-width: ~Apx;
+--slider-thumb: ~A;--slider-color: ~A;
+--slider-background: ~A;min-width: 0;flex: 1 1 0;--slider-thumb-height: 100%;
+--slider-thumb-width: 2px;height: ~A;~@[width: ~A;~]"
+                          border-right-width thumbcolor color background-color
+                          (or height "10px") width)
+           :value (format nil "~a" value)
+           :min (format nil "~a" min)
+           :max (format nil "~a" max))))
+    (if receiver-fn
+        (set-on-input
+         hsl
+         (lambda (obj)
+           (declare (ignore obj))
+           (let ((val (value hsl)))
+;;;                                       (format t "vsl~a: ~a~%" (1+ idx) val)
+             (funcall receiver-fn val hsl)))))
+    hsl))
+
+(defun vslider
+    (container &key (value 0.0) (min 0.0) (max 100.0) (thumbcolor "black") (color "#3071A9")
+                 (border-right-width 1) (background-color "#fff")
+                 receiver-fn)
+    "vertical slider including behaviour."
+  (let ((vsl
+          (create-form-element
+           container :range
+           :class "vslider"
+           :style (format nil "--border-right-width: ~Apx;--slider-thumb: ~A;--slider-color: ~A;--slider-background: ~A;min-width: 0;flex: 1 1 0;height: 100%;--slider-thumb-height: thin;slider-thumb-width: 100%;"
                           border-right-width thumbcolor color background-color)
            :value (format nil "~a" value)
            :min (format nil "~a" min)
@@ -89,6 +142,7 @@ UserSelect
                            (selected-foreground "black")
                            (selected-background "lightblue")
                            (value 0)
+                           (size 10)
                            label
                            label-style
                            slot
@@ -98,9 +152,10 @@ UserSelect
            container :text
            :class "numbox"
            :value (format nil "~,1f" value)
-           :style (format nil ";--text-color: ~A;background-color: ~A:--numbox-selected-foreground: ~A;--numbox-selected-background: ~A;"
-                          color background-color selected-foreground selected-background)
-           :label (if label (create-label container :content (ensure-string label) :style (or label-style "margin-right: 5px;")))))
+           :style (format nil ";--text-color: ~A;align: center;background-color: ~A:--textbox-selected-foreground: ~A;--textbox-selected-background: ~A;font-size: ~Apt;width: ~Apx;height: ~Apx;"
+                          color background-color selected-foreground selected-background size
+                          (* size 5) (* size 2))
+           :label (if label (create-label container :content (ensure-string label) :style (or label-style "margin-right: 0px;")))))
         mouse-dragged
         startvalue)
 ;;;    (clog::unbind-event-script elem "onmousedown")
@@ -120,8 +175,8 @@ UserSelect
                      (val (+ last-val (* scale (- last-y y)))))
                 (when (/= y last-y)
                   (unless mouse-dragged
-                    (setf (style elem "--numbox-selected-foreground") color)
-                    (setf (style elem "--numbox-selected-background") background-color))
+                    (setf (style elem "--textbox-selected-foreground") color)
+                    (setf (style elem "--textbox-selected-background") background-color))
                   (setf mouse-dragged t)
                   (let ((val-string (format nil "~,1f" val)))
                     (setf (value elem) val-string)
@@ -148,7 +203,83 @@ UserSelect
           (declare (ignore obj event-data))))
        (if mouse-dragged (progn
                            (blur elem)
-                           (setf (style obj "--numbox-selected-foreground") selected-foreground))
-                           (setf (style obj "--numbox-selected-background") selected-background))
+                           (setf (style obj "--textbox-selected-foreground") selected-foreground))
+                           (setf (style obj "--textbox-selected-background") selected-background))
                            (setf mouse-dragged nil)))
     elem))
+
+(defun toggle (container &key (style "") (content "") (size 6)
+                           (color "black")
+                           (background "white")
+                           (selected-foreground "black")
+                           (selected-background "orange")
+                           receiver-fn toggle-content
+                           slot
+                           )
+  (let ((btn (create-button container :class "toggle"
+                                      :style (format nil "~A width: ~A;height: ~Apx;font-size: ~Apt;color: ~A;background-color: ~A;"
+                                                     style (* 5 size) (* 2 size) size color background)
+                                      :content content
+                                      ))
+        (button-state nil))
+    (set-on-click
+     btn
+     (lambda (obj)
+       (if button-state
+           (progn
+             (setf (style obj "color") color)
+             (setf (style obj "background-color") background)
+             (setf (text obj) content)
+             (setf button-state nil))
+           (progn
+             (setf (style obj "color") selected-foreground)
+             (setf (style obj "background-color") selected-background)
+             (if toggle-content (setf (text obj) toggle-content))
+             (setf button-state t)))
+       (if receiver-fn (funcall receiver-fn slot button-state obj))))
+    (set-on-mouse-down
+     btn
+     (lambda (obj event)
+       (declare (ignore event))
+;;;       (setf mouse-down t)
+       (if button-state
+           (progn
+             (setf (style obj "color") color)
+             (setf (style obj "background-color") background)
+             (setf (text obj) content))
+           (progn
+             (setf (style obj "color") selected-foreground)
+             (setf (style obj "background-color") selected-background)
+             (if toggle-content (setf (text obj) toggle-content))))))
+    ;; (set-on-mouse-up
+    ;;  body ;;; has to be the body!
+    ;;  (lambda (obj event)
+    ;;    (declare (ignore event))
+    ;;    (setf mouse-down nil)))
+    ;; (set-on-mouse-leave
+    ;;  btn
+    ;;  (lambda (obj)
+    ;;    (if button-state
+    ;;        (progn
+    ;;          (setf (style obj "color") selected-foreground)
+    ;;          (setf (style obj "background-color") selected-background)
+    ;;          (if toggle-content (setf (text obj) toggle-content)))
+    ;;        (progn
+    ;;          (setf (style obj "color") color)
+    ;;          (setf (style obj "background-color") background)
+    ;;          (setf (text obj) content)))))
+    ;; (set-on-mouse-enter
+    ;;  btn
+    ;;  (lambda (obj)
+    ;;    (if button-state
+    ;;        (progn
+    ;;          (setf (style obj "color") color)
+    ;;          (setf (style obj "background-color") background)
+    ;;          (setf (text obj) content))
+    ;;        (progn
+    ;;          (setf (style obj "color") selected-foreground)
+    ;;          (setf (style obj "background-color") selected-background)
+    ;;          (if toggle-content (setf (text obj) toggle-content))))))
+    ))
+
+
