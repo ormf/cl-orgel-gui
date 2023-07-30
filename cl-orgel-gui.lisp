@@ -66,6 +66,28 @@
                      (unless (equal self elem) (setf (value elem) val-string))))))
              clog-connection::*connection-data*)))
 
+(defmethod clog:create-div ((obj clog-obj) &key (content "")
+                                        (style nil)
+                                        (db-val 100)
+                                        (hidden nil)
+                                        (class nil)
+                                        (html-id nil)
+                                        (auto-place t))
+  (create-child obj (format nil "<div~@[~A~]~@[~A~]~@[~A~]>~A</div>"
+                            (when class
+                              (format nil " class='~A'"
+                                      (escape-string class :html t)))
+                            (when (or hidden style)
+                              (format nil " style='~@[~a~]~@[~a~]'"
+                                      (when hidden "visibility:hidden;")
+                                      style))
+                            (if db-val (format nil " db-val = ~a" db-val))
+                            content)
+                :clog-type  'clog-div
+                :html-id    html-id
+                :auto-place auto-place))
+
+
 (defun on-new-window (body)
   (let ((orgel (make-orgel))
         connection-id)
@@ -81,7 +103,7 @@
     ;; When doing extensive setup of a page using connection cache
     ;; reduces rountrip traffic and speeds setup.
     (with-connection-cache (body)
-      (let* (p1 p2 nbs1 nbs2 tg1 tg2 vsliders vu1)
+      (let* (p1 p2 nbs1 nbs2 tg1 tg2 vsliders vu1 vu2 vutest vuleds)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
         ;; Panel 1 contents
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -126,22 +148,39 @@
                    (setf (value vsl)
                          (aref (orgel-level-sliders *curr-orgel-state*) idx))
                    (setf (aref (orgel-level-sliders orgel) idx) vsl)))
-        (setf vu1 (create-canvas p1 :class "vumeter" :width "10px" :height "100px" :data-val 30))
+;;        (setf vu1 (create-canvas p1 :class "vumeter" :width "10px" :height "126px" :data-val 30))
+        (setf *my-vu*
+              (setf vu2 (create-div p1 :class "vumeter" :style "width: 10px; height: 126px;background-color: #222;justify-content: center;" :db-val -100)))
         
-        (js-execute body (format nil "vumeter(~A, {\"boxCount\": 15, \"boxGapFraction\": 0.25, \"max\":100, })"
-                                 (jquery vu1)))
+        ;; (js-execute body (format nil "vumeter(~A, {\"boxCount\": 40, \"boxGapFraction\": 0.01, \"max\":100, })"
+        ;;                          (jquery vu1)))
+        (js-execute body (format nil "vumeter(~A, {\"boxCount\": 40, \"boxGapFraction\": 0.01, \"max\":100, \"db-val\":0})"
+                                 (jquery vu2)))
+
+
 ;;;        (jquery-execute vu1 (format nil "setAttribute('data-val', '~A')" (escape-string 45)))
 
 ;;;        (js-execute (jquery vu1) (format nil "setAttribute('data-val', '~A')" (escape-string 45)))
 
-        (setf (attribute vu1 "data-val") 15)
+        (setf (attribute vu2 "db-val") 12)
 ;;;        (setf (property vu1 :width) 150)
 
+        ;; (setf vutest (create-div p1 :class "vumeter" :style "width: 10px;height: 85px; background-color: #222;justify-content: center;"))
+        ;; (setf vuleds (create-div vutest :style "width: 100%;padding: 2px;height: 100%;display: flex;flex-direction: column; justify-content: space-between;"))
+        ;; 
+        ;; (create-span vuleds :style "background-color: #0f0; border: thin solid black;height: 100%;width: 100%;")
+        ;; (loop repeat 39
+        ;;       do (create-span vuleds :style "background-color: #0f0; border: thin solid black;border-top-style: none; margin:0;height: 100%;width: 100%;"))
+
+        
 ;;;        (set-border p1 :thin :solid :black)
         )) ;;; text style))
 ))
 
-(setf (width))
+(defparameter *my-vu* nil)
+
+;;; (setf (attribute *my-vu* "db-val") -60)
+;;; (setf (attribute *my-vu* "db-val")4)
 
 ;;; (setf (width vu1))
     (defun start-orgel-gui ()
@@ -157,4 +196,5 @@
 ;;; (create-form-element)
 
 
-(create-context2d disp)
+;;; (create-context2d disp)
+

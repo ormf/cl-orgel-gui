@@ -225,8 +225,13 @@ input[type=range]:focus::-ms-fill-upper {
 }
 
 canvas.vumeter {
+    filter: none;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: -webkit-crisp-edges;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
     border: thin solid black;
-    background-color: #333;
+    background-color: #fff
 }
 
 meter {

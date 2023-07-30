@@ -9,146 +9,101 @@ function vumeter(elem, config){
 //    var jitter          = config.jitter || 0.02;
 
     // Colours
-    var redOn     = 'rgba(255,47,30,0.9)';
-    var redOff    = 'rgba(64,12,8,0.9)';
-    var yellowOn  = 'rgba(255,215,5,0.9)';
-    var yellowOff = 'rgba(64,53,0,0.9)';
-    var greenOn   = 'rgba(53,255,30,0.9)';
-    var greenOff  = 'rgba(13,64,8,0.9)';
+//    var redOn     = 'rgba(255,47,30,1.0)';
+    var redOff    = 'rgba(64,12,8,1.0)';
+    var purpleOn  = 'rgba(244,48,240,1.0)';
+    var redOn     = 'rgba(252,40,40,1.0)';
+    var orangeOn  = 'rgba(250,171,71,1.0)';
+    var yellowOn  = 'rgba(232,232,40,1.0)';
+    var greenOn   = 'rgba(20,232,20,1.0)';
+//    var yellowOn  = 'rgba(255,215,5,1.0)';
+    var yellowOff = 'rgba(64,53,0,1.0)';
+//    var orangeOn  = 'rgba(215,215,5,1.0)';
+    var orangeOff = 'rgba(53,53,0,1.0)';
+//    var greenOn   = 'rgba(53,255,30,1.0)';
+    var greenOff  = 'rgba(13,64,8,1.0)';
 
+
+
+    
     console.log('boxCount: ' + boxCount);
     // Derived and starting values
 
-    var canvas = elem.get(0)
+    var colors = [];
+    var vuMeter = elem.get(0);
+    console.log('vuMeter: ' + vuMeter);
 
-    var width = canvas.width;
-    var height = canvas.height;
-    var curVal = 0;
+    var vuLedContainer = document.createElement("div");
+    vuLedContainer.style.height = "100%";
+    vuLedContainer.style.width = "100%";
+    vuLedContainer.style.padding = "2px";
+    vuLedContainer.style.display = "flex";
+    vuLedContainer.style.flexDirection = "column";
+    vuLedContainer.style.justifyContent = "space-between";
 
+    vuMeter.appendChild(vuLedContainer);
     
-    console.log( 'width: ' + width + ', height: ' + height);
+    for (i = 0;i<16;i++) { colors[i] = greenOn; }
+    for (i = 16;i<26;i++) { colors[i] = yellowOn; }
+    for (i = 26;i<28;i++) { colors[i] = orangeOn; }
+    for (i = 28;i<39;i++) { colors[i] = redOn; }
+    colors[39] = purpleOn;
     
-    console.log( 'elem: ' + elem + ', canvas: ' + canvas);
+    var leds = [];
+    for (i = 39;i>=0;i--) {
+        leds[i] = document.createElement("span");
+        leds[i].style.width = "100%";
+        leds[i].style.height = "100%";
+        leds[i].style.border = "thin solid #222";
+        leds[i].style.backgroundColor = "#222";
+        if (i < 39) { leds[i].style.borderTopStyle = "none"; }
+        vuLedContainer.appendChild(leds[i]);
+    }
+    var lastVal=0;
+    var valLookup = [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 9, 9, 9, 10, 10, 11, 11, 11, 12, 12, 13, 13, 14, 14, 15, 15, 16, 16, 17, 17, 18, 19, 19, 20, 21, 22, 23, 24, 25, 27, 29, 31, 33, 34, 35, 36, 37, 37, 38, 39, 39, 39, 40];
 
-    // const VuValChange = new Event('set-data-val', {
-    //     bubbles: false,
-    //     cancelable: false,
-    //     composed: false
-    // })
-    // 
-    // 
-    // function setDataListener () {
-    //     console.log("I'm listening on a set-data-val-event");
-    //                };
-    // 
-    // elem.dispatchEvent(VuValChange);
-    // elem.addEventListener('set-data-val', setDataListener);
+    // Main draw function
+    var draw = function() {
+        console.log('redraw!' + vuMeter.getAttribute("db-val"));
+        var targetDB = 100+parseInt(vuMeter.getAttribute("db-val"), 10)
+        if (targetDB > 112)
+            targetDB=112;
+        else { if (targetVal < 0) tarvetVal = 0; }
+        
+        var targetVal = valLookup[targetDB];
+        console.log('redraw! lastVal: ' + lastVal + ', targetVal: ' + targetVal);
 
-    // Canvas starting state
-    
-    const mySetAttribute = canvas.setAttribute;
+        if (targetVal != lastVal) {
+            if (targetVal > lastVal) {
+                for (var i = lastVal;i < targetVal;i++) {
+                    leds[i].style.backgroundColor = colors[i];
+                    console.log('i: ' + i + ', on: ' + leds[i].style.backgroundColor);
+                }
+            }
+            else {
+                for (var i = targetVal;i < lastVal;i++) {
+                    leds[i].style.backgroundColor = "#222";
+                    console.log('i: ' + i + ', off: ' + leds[i].style.backgroundColor);
+                }
+            }
+        
+            lastVal = targetVal;
+            //        requestAnimationFrame(draw);
+        }
+    };
+
+    const mySetAttribute = vuMeter.setAttribute;
     // override setAttribte
-    canvas.setAttribute = function (key, value) {
+    vuMeter.setAttribute = function (key, value) {
 //        console.log("--trace, key: " + key + ', value: ' + value);
         // use call, to set the context and prevent illegal invocation errors
-        mySetAttribute.call(canvas, key, value);
-        if (key == 'data-val') drawBoxes(c, value);
-    };
-//     console.log (elem.setAttribute);
-    // Gap between boxes and box height
-    var boxHeight = height / (boxCount + (boxCount+1)*boxGapFraction);
-    var boxGapY = boxHeight * boxGapFraction;
-
-    var boxWidth = width - (boxGapY*2);
-    var boxGapX = (width - boxWidth) / 2;
-
-
-    var c = canvas.getContext('2d');
-
-    c.save();
-    c.beginPath();
-    c.rect(0, 0, width, height);
-    c.fillStyle = '#333';
-    c.fill();
-    c.restore();
-    drawBoxes(c, 60);
-
-    
-//    drawBoxes(c, 50);
-    
-    // Main draw loop
-    var draw = function(){
-        
-        var targetVal = parseInt(canvas.dataset.val, 10);
-
-
-        // Gradual approach
-        // Apply jitter
-        if (curVal < 0) {
-            curVal = 0;
-        }
-//            console.log('context: ' + c);
-        c.save();
-        c.beginPath();
-        c.rect(0, 0, width, height);
-        c.fillStyle = '#333';
-        c.fill();
-        c.restore();
-        drawBoxes(c, targetVal);
-        
-        curVal = targetVal;
-        requestAnimationFrame(draw);
+        mySetAttribute.call(vuMeter, key, value);
+//        if (key == 'db-val') drawBoxes(c, value);
+        if (key == 'db-val') draw();
     };
 
-    // Draw the boxes
-    function drawBoxes(c, val){
-        c.save(); 
-        c.translate(boxGapX, boxGapY);
-        for (var i = 0; i < boxCount; i++){
-            var id = getId(i);
-            
-            c.beginPath();
-            c.rect(0, 0, boxWidth, boxHeight);
-            c.fillStyle = getBoxColor(id, val);
-            c.fill();
-            c.translate(0, boxHeight + boxGapY);
-        }
-        c.restore();
-    }
-
-    // Get the color of a box given it's ID and the current value
-    function getBoxColor(id, val){
-        // on colours
-//        console.log('id: ' + id + ', val: ' + val);
-        if (id > boxCount - boxCountRed){
-            return isOn(id, val)? redOn : redOff;
-        }
-        if (id > boxCount - boxCountRed - boxCountYellow){
-            return isOn(id, val)? yellowOn : yellowOff;
-        }
-        return isOn(id, val)? greenOn : greenOff;
-    }
-
-    function getId(index){
-        // The ids are flipped, so zero is at the top and
-        // boxCount-1 is at the bottom. The values work
-        // the other way around, so align them first to
-        // make things easier to think about.
-        return Math.abs(index - (boxCount - 1)) + 1;
-    }
-
-    function isOn(id, val){
-        // We need to scale the input value (0-max)
-        // so that it fits into the number of boxes
-        var maxOn = Math.ceil((val/max) * boxCount);
-        return (id <= maxOn);
-    }
+    
 
     // Trigger the animation
-//    draw();
-}
-
-function vumeter2 (elem, config) {
-    console.log(elem);
-
+    draw();
 }
