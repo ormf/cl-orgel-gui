@@ -9,20 +9,30 @@ function vumeter(elem, config){
 //    var jitter          = config.jitter || 0.02;
 
     // Colours
-//    var redOn     = 'rgba(255,47,30,1.0)';
+    var redOn     = 'rgba(255,47,30,1.0)';
     var redOff    = 'rgba(64,12,8,1.0)';
-    var purpleOn  = 'rgba(244,48,240,1.0)';
-    var redOn     = 'rgba(252,40,40,1.0)';
-    var orangeOn  = 'rgba(250,171,71,1.0)';
-    var yellowOn  = 'rgba(232,232,40,1.0)';
-    var greenOn   = 'rgba(20,232,20,1.0)';
-//    var yellowOn  = 'rgba(255,215,5,1.0)';
+    var yellowOn  = 'rgba(255,215,5,1.0)';
     var yellowOff = 'rgba(64,53,0,1.0)';
-//    var orangeOn  = 'rgba(215,215,5,1.0)';
+    var orangeOn  = 'rgba(215,215,5,1.0)';
     var orangeOff = 'rgba(53,53,0,1.0)';
-//    var greenOn   = 'rgba(53,255,30,1.0)';
+    var greenOn   = 'rgba(53,255,30,1.0)';
     var greenOff  = 'rgba(13,64,8,1.0)';
 
+    var PdPurple  = 'rgba(244,48,240,1.0)';
+    var PdRed     = 'rgba(252,40,40,1.0)';
+    var PdOrange  = 'rgba(250,171,71,1.0)';
+    var PdYellow  = 'rgba(232,232,40,1.0)';
+    var PdGreen   = 'rgba(20,232,20,1.0)';
+    var colBlue1 = 'rgba(68, 85, 0, 1.0)';
+    var colBlue2 = 'rgba(0, 102, 128, 1.0)';
+    var colBlue3 = 'rgba(0, 136, 170, 1.0)';
+    var colBlue4 = 'rgba(0, 170, 212, 1.0)';
+    var colBlue5 = 'rgba(0, 204, 255, 1.0)';
+    var colBlue6 = 'rgba(42, 212, 255, 1.0)';
+    var colBlue7 = 'rgba(85, 221, 255, 1.0)';
+    var colBlue8 = 'rgba(128, 229, 255, 1.0)';
+    var colBlue9 = 'rgba(170, 238, 255, 1.0)';
+    var colBlue10 = 'rgba(213, 246, 255, 1.0)';
 
 
     
@@ -30,6 +40,8 @@ function vumeter(elem, config){
     // Derived and starting values
 
     var colors = [];
+    setPdColors();
+
     var vuMeter = elem.get(0);
     console.log('vuMeter: ' + vuMeter);
 
@@ -42,13 +54,7 @@ function vumeter(elem, config){
     vuLedContainer.style.justifyContent = "space-between";
 
     vuMeter.appendChild(vuLedContainer);
-    
-    for (i = 0;i<16;i++) { colors[i] = greenOn; }
-    for (i = 16;i<26;i++) { colors[i] = yellowOn; }
-    for (i = 26;i<28;i++) { colors[i] = orangeOn; }
-    for (i = 28;i<39;i++) { colors[i] = redOn; }
-    colors[39] = purpleOn;
-    
+        
     var leds = [];
     for (i = 39;i>=0;i--) {
         leds[i] = document.createElement("span");
@@ -102,7 +108,13 @@ function vumeter(elem, config){
         if (key == 'db-val') draw();
     };
 
-    
+    function setPdColors () {
+        for (i = 0;i<16;i++) { colors[i] = PdGreen; }
+        for (i = 16;i<26;i++) { colors[i] = PdYellow; }
+        for (i = 26;i<28;i++) { colors[i] = PdOrange; }
+        for (i = 28;i<39;i++) { colors[i] = PdRed; }
+        colors[39] = PdPurple;
+    }
 
     // Trigger the animation
     draw();

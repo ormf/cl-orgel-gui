@@ -177,6 +177,22 @@
         )) ;;; text style))
 ))
 
+
+
+(defun hex->rgb (num)
+  (list
+   (ash (logand num #xff0000) -16)
+   (ash (logand num #xff00) -8)
+   (logand num #xff)))
+
+(format t "~{var colBlue~{~d = rgba(~{~a~^, ~}, 1.0);~%~}~}"
+        (loop
+          for num from 1
+          for col in '(#x445500 #x006680 #x0088aa #x00aad4 #x00ccff #x2ad4ff #x55ddff #x80e5ff #xaaeeff #xd5f6ff)
+          collect (list num (hex->rgb col))))
+
+
+(hex->rgb #x444500)
 (defparameter *my-vu* nil)
 
 ;;; (setf (attribute *my-vu* "db-val") -60)
