@@ -27,6 +27,10 @@
   (base-freq "0.0")
   (min-amp "0.0")
   (max-amp "1.0")
+  (phase "0.0")
+  (bandp "0.0")
+  (main-volume "0.0")
+  (bw "0.0")
   (level-sliders (make-array 16))
   (delay-sliders (make-array 16))
   (bp-sliders (make-array 16))
@@ -79,7 +83,7 @@
     ;; When doing extensive setup of a page using connection cache
     ;; reduces rountrip traffic and speeds setup.
     (with-connection-cache (body)
-      (let* (p1 p2 nbs1 nbs2 tg1-container tg2-container vsliders vu1 vu2)
+      (let* (p1 p2 p3 p4 nbs1 nbs2 tg1-container tg2-container vsliders vu1 vu2)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
         ;; Panel 1 contents
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -91,7 +95,9 @@
         (create-br body)
         (setf p1  (create-div body :style "margin-left: 20px;"))
         (create-div p1 :content "Orgel01" :style "align: bottom; padding-bottom: 10px;")
-        (setf p2 (create-div p1 :style "width: 160px;height: 60px;display: flex;justify-content: space-between;margin-bottom: 10px"))
+        (setf p4  (create-div p1 :width 190 :height 150 :style "display: flex;justify-content: space-between;flex: 0 0 auto;"))
+        (setf p3  (create-div p4))
+        (setf p2 (create-div p3 :style "width: 160px;height: 60px;display: flex;justify-content: space-between;margin-bottom: 10px"))
         (setf nbs1 (create-div p2 :style "width: 75px;font-size: 6pt;display: flex;flex-direction: column;justify-content: space-between;")) ;;; container for numberbox(es)
         (setf nbs2 (create-div p2 :style "width: 73px; font-size: 6pt;display: flex;flex-direction: column;justify-content: space-between;")) ;;; container for numberbox(es)
         (init-numboxes
@@ -108,15 +114,19 @@
                         :style "align-content: right;" :slot :bandp
                         :receiver-fn (lambda (slot state obj) (declare (ignore obj))
                                        (format t "~S clicked, state: ~a!~%" slot state)))
-        (setf *my-vu* (setf vu1 (multi-vu p1 :num 16 :width 160 :height 80 :led-colors :blue :direction :up :background "#444"
+;;;        (create-br p3)
+        (setf *my-vu* (setf vu1 (multi-vu p3 :num 16 :width 160 :height 80 :led-colors :blue :direction :up :background "#444"
                                              :inner-background "transparent"
                                              :border "thin solid black" :inner-border "none" :inner-padding-bottom "0px"
                                              :inner-padding "3px"
                                              :style "margin-bottom: 10px;")))
+        (create-div p1 :height 10)
         (setf vsliders (create-slider-panel p1 :label "Level"))
         (hslider p1 :background-color "#444" :color "#444" :thumbcolor "orange" :height "8px" :width "160px")
         (dolist (label '("Delay" "Bp" "Gain" "Osc-Level"))
           (setf vsliders (create-slider-panel p1 :label label)))
+        (vslider p4 :style "width: 10px;height: 100% ;--slider-thumb-height: 2px;--slider-thumb-width: 100%;flex: 0 0 auto;"
+                    :thumbcolor "orange" :color "#444" :background "#444")
 ;;;        (create-br p1)
         (loop for vsl in vsliders
               for idx from 0
@@ -131,7 +141,6 @@
 
 (defparameter *my-vu* nil)
 
-;;; (dolist (vu *my-vu*) (setf (attribute vu "db-val") (- (random 113) 100)))
 ;;; (setf (attribute *my-vu* "db-val") 4)
 
 ;;; (setf (width vu1))

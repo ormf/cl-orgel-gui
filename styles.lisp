@@ -29,6 +29,6 @@
 
 (defparameter *msl-title-style* "font-size: 8px;align: bottom; padding-top: 0px; padding-bottom: 0px;")
 
-(defparameter *msl-style* `(:num 16 :width 160 :colors ,*vsl-colors* :background-color "transparent"
+(defparameter *msl-style* `(:num 16 :width 160 :colors ,*vsl-colors* :background "transparent"
                            :receiver-fn ,#'synchronize-vsl))
 

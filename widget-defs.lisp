@@ -29,14 +29,14 @@ style: user-select:
 UserSelect 
 |#
 
-(defun multi-vslider (container &key (num 8) (width 80) (height 100) (background-color "white") (colors #("lightblue")) (thumbcolor "transparent")
+(defun multi-vslider (container &key (num 8) (width 80) (height 100) (background "white") (colors #("lightblue")) (thumbcolor "transparent")
                                   receiver-fn)
   (let* ((msl-container (create-div container
                                     :style (format nil "color: transparent; background-color: transparent;border: none;width: ~Apx;height: ~Apx;display: flex;padding: 0.5pt" width height)))
          (vsliders (v-collect (n num) (vslider
                                        msl-container
                                        :border-right-width (if (< n (1- num)) 0 1)
-                                       :background-color background-color
+                                       :background background
                                        :color (aref colors (mod n num))
                                        :thumbcolor thumbcolor))))
     (loop for vsl in vsliders
@@ -116,15 +116,15 @@ UserSelect
 
 (defun vslider
     (container &key (value 0.0) (min 0.0) (max 100.0) (thumbcolor "black") (color "#3071A9")
-                 (border-right-width 1) (background-color "#fff")
+                 (border-right-width 1) (background "#fff") style
                  receiver-fn)
     "vertical slider including behaviour."
   (let ((vsl
           (create-form-element
            container :range
            :class "vslider"
-           :style (format nil "--border-right-width: ~Apx;--slider-thumb: ~A;--slider-color: ~A;--slider-background: ~A;min-width: 0;flex: 1 1 0;height: 100%;--slider-thumb-height: thin;slider-thumb-width: 100%;"
-                          border-right-width thumbcolor color background-color)
+           :style (format nil "--border-right-width: ~Apx;--slider-thumb: ~A;--slider-color: ~A;--slider-background: ~A;min-width: 0;flex: 1 1 0;height: 100%;--slider-thumb-height: thin;slider-thumb-width: 100%;~@[~A~]"
+                          border-right-width thumbcolor color background style)
            :value (format nil "~a" value)
            :min (format nil "~a" min)
            :max (format nil "~a" max)
