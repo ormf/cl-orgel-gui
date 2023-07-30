@@ -63,3 +63,18 @@
 
 ;;; (slot-label :ramp-up)
 
+(defun hex->rgb (num)
+  (list
+   (ash (logand num #xff0000) -16)
+   (ash (logand num #xff00) -8)
+   (logand num #xff)))
+
+(defun cols->js (cols &key (name ""))
+  (format t "~{var ~{col~a~d = 'rgba(~{~a~^, ~}, 1.0)';~%~}~}"
+          (loop
+            for num from 1
+            for col in cols
+            collect (list name num (hex->rgb col)))))
+
+(defun cols->jsarray (cols)
+  (format nil "[~{'rgba(~{~a~^, ~}, 1.0)'~^, ~}]" (mapcar #'hex->rgb cols)))

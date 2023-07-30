@@ -2,11 +2,12 @@ function vumeter(elem, config){
 
     // Settings
     var max             = config.max || 100;
-    var boxCount        = config.boxCount || 10;
-    var boxCountRed     = config.boxCountRed || 2;
-    var boxCountYellow  = config.boxCountYellow || 3;
-    var boxGapFraction  = config.boxGapFraction || 0.2;
-//    var jitter          = config.jitter || 0.02;
+    var boxCount        = config.boxCount || 40;
+    var ledColors       = config.ledColors || [];
+    var barColor        = config.barColor || 'rgba(60,60,255,1.0)';
+    var vuType          = config.type || 0.02;
+    var vuDirection     = config.direction || 'up';
+    var vuType          = config.type || 0.02;
 
     // Colours
     var redOn     = 'rgba(255,47,30,1.0)';
@@ -23,7 +24,7 @@ function vumeter(elem, config){
     var PdOrange  = 'rgba(250,171,71,1.0)';
     var PdYellow  = 'rgba(232,232,40,1.0)';
     var PdGreen   = 'rgba(20,232,20,1.0)';
-    var colBlue1 = 'rgba(68, 85, 0, 1.0)';
+    var colBlue1 = 'rgba(0, 85, 100, 1.0)';
     var colBlue2 = 'rgba(0, 102, 128, 1.0)';
     var colBlue3 = 'rgba(0, 136, 170, 1.0)';
     var colBlue4 = 'rgba(0, 170, 212, 1.0)';
@@ -34,13 +35,34 @@ function vumeter(elem, config){
     var colBlue9 = 'rgba(170, 238, 255, 1.0)';
     var colBlue10 = 'rgba(213, 246, 255, 1.0)';
 
+    var colGreen1 = 'rgba(0, 85, 0, 1.0)';
+    var colGreen2 = 'rgba(0, 128, 0, 1.0)';
+    var colGreen3 = 'rgba(0, 170, 0, 1.0)';
+    var colGreen4 = 'rgba(0, 212, 0, 1.0)';
+    var colGreen5 = 'rgba(0, 255, 0, 1.0)';
+    var colGreen6 = 'rgba(42, 255, 42, 1.0)';
+    var colGreen7 = 'rgba(85, 255, 85, 1.0)';
+    var colGreen8 = 'rgba(128, 255, 128, 1.0)';
+    var colGreen9 = 'rgba(170, 255, 170, 1.0)';
+    var colGreen10 = 'rgba(213, 255, 213, 1.0)';
+
+    var colRed1 = 'rgba(85, 0, 0, 1.0)';
+    var colRed2 = 'rgba(128, 0, 0, 1.0)';
+    var colRed3 = 'rgba(170, 0, 0, 1.0)';
+    var colRed4 = 'rgba(213, 0, 0, 1.0)';
+    var colRed5 = 'rgba(255, 0, 0, 1.0)';
+    var colRed6 = 'rgba(255, 42, 42, 1.0)';
+    var colRed7 = 'rgba(255, 85, 85, 1.0)';
+    var colRed8 = 'rgba(255, 128, 128, 1.0)';
+    var colRed9 = 'rgba(255, 170, 170, 1.0)';
+    var colRed10 = 'rgba(255, 213, 213, 1.0)';
 
     
     console.log('boxCount: ' + boxCount);
     // Derived and starting values
 
     var colors = [];
-    setPdColors();
+    console.log('elem: ' + elem);
 
     var vuMeter = elem.get(0);
     console.log('vuMeter: ' + vuMeter);
@@ -68,6 +90,12 @@ function vumeter(elem, config){
     var lastVal=0;
     var valLookup = [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 9, 9, 9, 10, 10, 11, 11, 11, 12, 12, 13, 13, 14, 14, 15, 15, 16, 16, 17, 17, 18, 19, 19, 20, 21, 22, 23, 24, 25, 27, 29, 31, 33, 34, 35, 36, 37, 37, 38, 39, 39, 39, 40];
 
+//    setPdColors();
+//    setBlueColors();
+    setGreenColors();
+    setPdMap();
+
+    
     // Main draw function
     var draw = function() {
         console.log('redraw!' + vuMeter.getAttribute("db-val"));
@@ -101,7 +129,8 @@ function vumeter(elem, config){
     const mySetAttribute = vuMeter.setAttribute;
     // override setAttribte
     vuMeter.setAttribute = function (key, value) {
-//        console.log("--trace, key: " + key + ', value: ' + value);
+        console.log("vumeter-set-attribute");
+        //        console.log("--trace, key: " + key + ', value: ' + value);
         // use call, to set the context and prevent illegal invocation errors
         mySetAttribute.call(vuMeter, key, value);
 //        if (key == 'db-val') drawBoxes(c, value);
@@ -115,6 +144,44 @@ function vumeter(elem, config){
         for (i = 28;i<39;i++) { colors[i] = PdRed; }
         colors[39] = PdPurple;
     }
+
+    function setPdMap () {
+        valLookup = [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 9, 9, 9, 10, 10, 11, 11, 11, 12, 12, 13, 13, 14, 14, 15, 15, 16, 16, 17, 17, 18, 19, 19, 20, 21, 22, 23, 24, 25, 27, 29, 31, 33, 34, 35, 36, 37, 37, 38, 39, 39, 39, 40];
+    }
+    
+    function setBlueColors () {
+        for (i = 0;i<1;i++) { colors[i] = colBlue1; }
+        for (i = 1;i<7;i++) { colors[i] = colBlue2; }
+        for (i = 4;i<7;i++) { colors[i] = colBlue3; }
+        for (i = 7;i<10;i++) { colors[i] = colBlue4; }
+        for (i = 10;i<13;i++) { colors[i] = colBlue5; }
+        for (i = 13;i<16;i++) { colors[i] = colBlue6; }
+        for (i = 16;i<19;i++) { colors[i] = colBlue7; }
+        for (i = 19;i<22;i++) { colors[i] = colBlue8; }
+        for (i = 22;i<25;i++) { colors[i] = colBlue9; }
+        for (i = 25;i<28;i++) { colors[i] = colBlue10; }
+        for (i = 28;i<31;i++) { colors[i] = colRed9; }
+        for (i = 31;i<34;i++) { colors[i] = colRed8; }
+        for (i = 34;i<37;i++) { colors[i] = colRed7; }
+        for (i = 37;i<40;i++) { colors[i] = colRed6; }
+     }
+
+    function setGreenColors () {
+        for (i = 0;i<1;i++) { colors[i] = colGreen1; }
+        for (i = 1;i<7;i++) { colors[i] = colGreen2; }
+        for (i = 4;i<7;i++) { colors[i] = colGreen3; }
+        for (i = 7;i<10;i++) { colors[i] = colGreen4; }
+        for (i = 10;i<13;i++) { colors[i] = colGreen5; }
+        for (i = 13;i<16;i++) { colors[i] = colGreen6; }
+        for (i = 16;i<19;i++) { colors[i] = colGreen7; }
+        for (i = 19;i<22;i++) { colors[i] = colGreen8; }
+        for (i = 22;i<25;i++) { colors[i] = colGreen9; }
+        for (i = 25;i<28;i++) { colors[i] = colGreen10; }
+        for (i = 28;i<31;i++) { colors[i] = colRed9; }
+        for (i = 31;i<34;i++) { colors[i] = colRed8; }
+        for (i = 34;i<37;i++) { colors[i] = colRed7; }
+        for (i = 37;i<40;i++) { colors[i] = colRed6; }
+     }
 
     // Trigger the animation
     draw();

@@ -66,27 +66,26 @@
                      (unless (equal self elem) (setf (value elem) val-string))))))
              clog-connection::*connection-data*)))
 
-(defmethod clog:create-div ((obj clog-obj) &key (content "")
-                                        (style nil)
-                                        (db-val 100)
-                                        (hidden nil)
-                                        (class nil)
-                                        (html-id nil)
-                                        (auto-place t))
-  (create-child obj (format nil "<div~@[~A~]~@[~A~]~@[~A~]>~A</div>"
-                            (when class
-                              (format nil " class='~A'"
-                                      (escape-string class :html t)))
-                            (when (or hidden style)
-                              (format nil " style='~@[~a~]~@[~a~]'"
-                                      (when hidden "visibility:hidden;")
-                                      style))
-                            (if db-val (format nil " db-val = ~a" db-val))
+(defmethod clog:create-div ((obj clog-obj) &rest args
+                            &key (content "")
+                              (style nil)
+                              (hidden nil)
+                              (class nil)
+                              (html-id nil)
+                              (auto-place t)
+                            &allow-other-keys)
+  (dolist (key '(:hidden :html-id :auto-place)) (remf args key))
+  (when (or hidden style)
+    (setf (getf args :style) (format nil "~@[~a~]~@[~a~]"
+                                     (if hidden "visibility:hidden;") style)))
+  (when class (setf (getf args :class) (format nil "~A" (escape-string class :html t))))
+
+  (create-child obj (format nil "<div ~{~(~A~)= \"~a\"~^ ~}>~A</div>"
+                            args
                             content)
                 :clog-type  'clog-div
                 :html-id    html-id
                 :auto-place auto-place))
-
 
 (defun on-new-window (body)
   (let ((orgel (make-orgel))
@@ -114,7 +113,7 @@
         ;;                       "#ff00ff"))
         (create-br body)
         (setf p1  (create-div body :style "margin-left: 20px;"))
-;;;        (setf ms1  (create-div p1 :style "color: transparent; border: none;width: 100px;height: 100px;display: flex;")) ;;; container als Platzhalter
+        (setf p2  (create-div body :style "margin-left: 20px;"))
         (setf p2 (create-div p1 :style "width: 160px;height: 60px;display: flex;justify-content: space-between;"))
         (setf nbs1 (create-div p2 :style "width: 75px;font-size: 6pt;display: flex;flex-direction: column;justify-content: space-between;")) ;;; container for numberbox(es)
         (setf nbs2 (create-div p2 :style "width: 73px; font-size: 6pt;display: flex;flex-direction: column;justify-content: space-between;")) ;;; container for numberbox(es)
@@ -136,7 +135,8 @@
         (toggle tg2 :content "bandp" :toggle-content "notch" :size 6 :background "lightgreen" :selected-background "orange"
                         :style "align-content: right;" :slot :bandp
                         :receiver-fn (lambda (slot state obj) (declare (ignore obj))
-                                       (format t "~S clicked, state: ~a!~%" slot state)))        (setf vsliders
+                                       (format t "~S clicked, state: ~a!~%" slot state)))
+        (setf vsliders
               (multi-vslider p1 :num 16 :width 160 :colors *vsl-colors* :background-color "transparent"
                                          :receiver-fn #'synchronize-vsl))
         (hslider p1 :background-color "#444" :color "#444" :thumbcolor "orange" :height "8px" :width "160px")
@@ -149,22 +149,29 @@
                          (aref (orgel-level-sliders *curr-orgel-state*) idx))
                    (setf (aref (orgel-level-sliders orgel) idx) vsl)))
 ;;        (setf vu1 (create-canvas p1 :class "vumeter" :width "10px" :height "126px" :data-val 30))
-        (setf *my-vu*
-              (setf vu2 (create-div p1 :class "vumeter" :style "width: 10px; height: 126px;background-color: #222;justify-content: center;" :db-val -100)))
-        
+                
         ;; (js-execute body (format nil "vumeter(~A, {\"boxCount\": 40, \"boxGapFraction\": 0.01, \"max\":100, })"
         ;;                          (jquery vu1)))
-        (js-execute body (format nil "vumeter(~A, {\"boxCount\": 40, \"boxGapFraction\": 0.01, \"max\":100, \"db-val\":0})"
-                                 (jquery vu2)))
 
+        (setf *my-vu* (setf vu1 (vumeter p1 :db-val 0 :direction :up)))
+        (setf vu2 (vumeter p1 :db-val -30 :direction :up))
 
 ;;;        (jquery-execute vu1 (format nil "setAttribute('data-val', '~A')" (escape-string 45)))
 
 ;;;        (js-execute (jquery vu1) (format nil "setAttribute('data-val', '~A')" (escape-string 45)))
 
-        (setf (attribute vu2 "db-val") 12)
+;;;        (setf (attribute vu1 "db-val") 12)
 ;;;        (setf (property vu1 :width) 150)
 
+        ;; (setf *my-vu*
+        ;;       (setf vu2 (create-div p1 :class "vumeter" :style "width: 10px; height: 126px;background-color: #222;justify-content: center;" :db-val -100)))
+        ;; 
+        ;; ;; ;; (js-execute body (format nil "vumeter(~A, {\"boxCount\": 40, \"boxGapFraction\": 0.01, \"max\":100, })"
+        ;; ;; ;;                          (jquery vu1)))
+        ;; (js-execute vu2 (format nil "vumeter(~A, {\"boxCount\": 40, \"boxGapFraction\": 0.01, \"max\":100, \"db-val\":0})"
+        ;;                          (jquery vu2)))
+        (setf (attribute vu1 "db-val") -100)
+        (setf (attribute vu2 "db-val") 12)
         ;; (setf vutest (create-div p1 :class "vumeter" :style "width: 10px;height: 85px; background-color: #222;justify-content: center;"))
         ;; (setf vuleds (create-div vutest :style "width: 100%;padding: 2px;height: 100%;display: flex;flex-direction: column; justify-content: space-between;"))
         ;; 
@@ -177,26 +184,10 @@
         )) ;;; text style))
 ))
 
-
-
-(defun hex->rgb (num)
-  (list
-   (ash (logand num #xff0000) -16)
-   (ash (logand num #xff00) -8)
-   (logand num #xff)))
-
-(format t "~{var colBlue~{~d = rgba(~{~a~^, ~}, 1.0);~%~}~}"
-        (loop
-          for num from 1
-          for col in '(#x445500 #x006680 #x0088aa #x00aad4 #x00ccff #x2ad4ff #x55ddff #x80e5ff #xaaeeff #xd5f6ff)
-          collect (list num (hex->rgb col))))
-
-
-(hex->rgb #x444500)
 (defparameter *my-vu* nil)
 
-;;; (setf (attribute *my-vu* "db-val") -60)
-;;; (setf (attribute *my-vu* "db-val")4)
+;;; (setf (attribute *my-vu* "db-val") "0")
+;;; (setf (attribute *my-vu* "db-val") 4)
 
 ;;; (setf (width vu1))
     (defun start-orgel-gui ()

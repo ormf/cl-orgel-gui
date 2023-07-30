@@ -59,6 +59,7 @@ UserSelect
                         (if receiver-fn (funcall receiver-fn idx val vsl)))))))))
     (values vsliders msl-container)))
 
+#|
 (defun vslider
     (container &key (value 0.0) (min 0.0) (max 100.0) (thumbcolor "black") (color "#3071A9")
                  (border-right-width 1) (background-color "#fff")
@@ -83,6 +84,7 @@ UserSelect
 ;;;                                       (format t "vsl~a: ~a~%" (1+ idx) val)
              (funcall receiver-fn val vsl)))))
     vsl))
+|#
 
 (defun hslider
     (container &key (value 0.0) (min 0.0) (max 100.0) (thumbcolor "black") (color "#3071A9")
@@ -282,4 +284,64 @@ UserSelect
     ;;          (if toggle-content (setf (text obj) toggle-content))))))
     ))
 
+(deftype vu-type () '(member :led :bar))
+(deftype vu-input-mode () '(member :db :lin))
+(deftype vu-display-map () '(member :pd :lin :dblin))
+(deftype vu-direction () '(member :up :down :left :right))
 
+(defun vumeter (container &rest args
+                &key style (width 10) (height 126) (background "#222")
+                  (direction :up)
+                  (vu-type :led) (input-mode :db) (display-map :pd) led-colors (bar-color "'rgba(60,60,255,1.0)'")
+                  (db-val -100)
+                &allow-other-keys)
+  (declare (ignorable style width height background)
+           (type vu-direction direction)
+           (type vu-type vu-type)
+           (type vu-input-mode input-mode)
+           (type vu-display-map display-map))
+  (dolist (key '(:type :input-mode :display-map :colors :db-val)) (remf args key))
+  (setf (getf args :direction) direction)
+  (setf (getf args :width) (format nil "~apx" (if (member direction '(:left :right)) height width)))
+  (setf (getf args :height) (format nil "~apx"(if (member direction '(:left :right)) width height)))
+  (setf (getf args :background) background)
+;;;  (break (format nil "justify-content: center;~{~(~A~): \"~a\"~^; ~}" args))
+  (let ((vu-container (create-div container :class "vumeter" :style (format nil "justify-content: center;~{~(~A~): ~a~^; ~}" args) :db-val db-val)))
+    (js-execute vu-container (format nil "vumeter(~A, {\"boxCount\": 40, \"ledColors\": ~a, \"barColor\": ~a, \"vuType\": '~a', \"inputMode\": '~a', \"displayMap\": '~a', \"direction\": '~a' })"
+                                  (jquery vu-container)
+                                  (if led-colors (cols->jsarray led-colors) "false")
+                                  bar-color
+                                  vu-type input-mode display-map direction))))
+
+(defun vumeter2 (container &rest args
+                &key style (width 10) (height 126) (background "#222")
+                  (direction :up)
+                  (vu-type :led) (input-mode :db) (display-map :pd) led-colors (bar-color "'rgba(60,60,255,1.0)'")
+                  (db-val -100)
+                &allow-other-keys)
+  (declare (ignorable style width height background)
+           (type vu-direction direction)
+           (type vu-type vu-type)
+           (type vu-input-mode input-mode)
+           (type vu-display-map display-map))
+  (dolist (key '(:type :input-mode :display-map :colors :db-val)) (remf args key))
+  (setf (getf args :direction) direction)
+  (setf (getf args :width) (format nil "~apx" (if (member direction '(:left :right)) height width)))
+  (setf (getf args :height) (format nil "~apx"(if (member direction '(:left :right)) width height)))
+  (setf (getf args :background) background)
+;;;  (break (format nil "justify-content: center;~{~(~A~): \"~a\"~^; ~}" args))
+  (let ((vu-container (create-div container :class "vumeter" :style (format nil "justify-content: center;~{~(~A~): ~a~^; ~}" args) :db-val db-val)))
+    (js-execute vu-container (format nil "vumeter(~A, {\"boxCount\": 40, \"ledColors\": ~a, \"barColor\": ~a, \"vuType\": '~a', \"inputMode\": '~a', \"displayMap\": '~a', \"direction\": '~a' })"
+                                  (jquery vu-container)
+                                  (if led-colors (cols->jsarray led-colors) "false")
+                                  bar-color
+                                  vu-type input-mode display-map direction))))
+
+#|
+(break (format nil "vumeter(~A, {\"boxCount\": 40, \"ledColors\": ~a, \"barColor\": ~a, \"vuType\": '~a', \"inputMode\": '~a', \"displayMap\": '~a' })"
+                   "CLOG"
+                   (if led-colors (cols->jsarray led-colors) "false")
+                                  bar-color
+                                  (jquery vu-container)
+                                  vu-type input-mode display-map))
+|#
