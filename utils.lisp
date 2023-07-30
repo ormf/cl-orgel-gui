@@ -78,3 +78,28 @@
 
 (defun cols->jsarray (cols)
   (format nil "[~{'rgba(~{~a~^, ~}, 1.0)'~^, ~}]" (mapcar #'hex->rgb cols)))
+
+(defun create-slider-panel (container &key label )
+  (create-div container :content label :style *msl-title-style*)
+  (apply #'multi-vslider container *msl-style*))
+
+(defun synchronize-vsl (idx val self)
+  (let ((val-string (ensure-string val)))
+    (setf (aref (orgel-level-sliders *curr-orgel-state*) idx) val-string)
+    (maphash (lambda (connection-id connection-hash)
+               (declare (ignore connection-id))
+               (let ((orgel (gethash "orgel" connection-hash)))
+                 (when orgel (let ((elem (aref (orgel-level-sliders orgel) idx)))
+                               (unless (equal self elem) (setf (value elem) val-string))))))
+             clog-connection::*connection-data*)))
+
+(defun synchronize-numbox (slot val self)
+  (let ((val-string (ensure-string val)))
+    (setf (slot-value *curr-orgel-state* slot) val-string)
+    (maphash (lambda (connection-id connection-hash)
+               (declare (ignore connection-id))
+               (let ((orgel (gethash "orgel" connection-hash)))
+                 (when orgel
+                   (let ((elem (slot-value (gethash "orgel" connection-hash) slot)))
+                     (unless (equal self elem) (setf (value elem) val-string))))))
+             clog-connection::*connection-data*)))

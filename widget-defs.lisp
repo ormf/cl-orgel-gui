@@ -289,53 +289,37 @@ UserSelect
 (deftype vu-display-map () '(member :pd :lin :dblin))
 (deftype vu-direction () '(member :up :down :left :right))
 
-(defun vumeter (container &rest args
-                &key style (width 10) (height 126) (background "#222")
-                  (direction :up)
-                  (vu-type :led) (input-mode :db) (display-map :pd) led-colors (bar-color "'rgba(60,60,255,1.0)'")
-                  (db-val -100)
-                &allow-other-keys)
-  (declare (ignorable style width height background)
-           (type vu-direction direction)
-           (type vu-type vu-type)
-           (type vu-input-mode input-mode)
-           (type vu-display-map display-map))
-  (dolist (key '(:type :input-mode :display-map :colors :db-val)) (remf args key))
-  (setf (getf args :direction) direction)
-  (setf (getf args :width) (format nil "~apx" (if (member direction '(:left :right)) height width)))
-  (setf (getf args :height) (format nil "~apx"(if (member direction '(:left :right)) width height)))
-  (setf (getf args :background) background)
-;;;  (break (format nil "justify-content: center;~{~(~A~): \"~a\"~^; ~}" args))
-  (let ((vu-container (create-div container :class "vumeter" :style (format nil "justify-content: center;~{~(~A~): ~a~^; ~}" args) :db-val db-val)))
-    (js-execute vu-container (format nil "vumeter(~A, {\"boxCount\": 40, \"ledColors\": ~a, \"barColor\": ~a, \"vuType\": '~a', \"inputMode\": '~a', \"displayMap\": '~a', \"direction\": '~a' })"
-                                  (jquery vu-container)
-                                  (if led-colors (cols->jsarray led-colors) "false")
-                                  bar-color
-                                  vu-type input-mode display-map direction))))
+(defun addpx (token)
+  (if (numberp token) (format nil "~apx" token) token))
 
-(defun vumeter2 (container &rest args
-                &key style (width 10) (height 126) (background "#222")
-                  (direction :up)
+;;; (format nil "~(~a~)" :--vu-background)
+(defun vumeter (container &rest args
+                &key style (width 10) (height 126) background
+                  (direction :up) (border "thin solid black")
                   (vu-type :led) (input-mode :db) (display-map :pd) led-colors (bar-color "'rgba(60,60,255,1.0)'")
-                  (db-val -100)
+                  (db-val -100) inner-padding inner-padding-bottom
                 &allow-other-keys)
-  (declare (ignorable style width height background)
+  (declare (ignorable style border)
            (type vu-direction direction)
            (type vu-type vu-type)
            (type vu-input-mode input-mode)
            (type vu-display-map display-map))
-  (dolist (key '(:type :input-mode :display-map :colors :db-val)) (remf args key))
+  (dolist (key '(:type :input-mode :display-map :led-colors :db-val :style :inner-padding :inner-padding-bottom)) (remf args key))
   (setf (getf args :direction) direction)
-  (setf (getf args :width) (format nil "~apx" (if (member direction '(:left :right)) height width)))
-  (setf (getf args :height) (format nil "~apx"(if (member direction '(:left :right)) width height)))
-  (setf (getf args :background) background)
+  (setf (getf args :border) border)
+  (setf (getf args :width) (format nil "~a" (addpx (if (member direction '(:left :right)) height width))))
+  (setf (getf args :height) (format nil "~a" (addpx (if (member direction '(:left :right)) width height))))
+  (when background (setf (getf args :--vu-background) background))
 ;;;  (break (format nil "justify-content: center;~{~(~A~): \"~a\"~^; ~}" args))
-  (let ((vu-container (create-div container :class "vumeter" :style (format nil "justify-content: center;~{~(~A~): ~a~^; ~}" args) :db-val db-val)))
-    (js-execute vu-container (format nil "vumeter(~A, {\"boxCount\": 40, \"ledColors\": ~a, \"barColor\": ~a, \"vuType\": '~a', \"inputMode\": '~a', \"displayMap\": '~a', \"direction\": '~a' })"
+  (let ((vu-container (create-div container :class "vumeter" :style (format nil "justify-content: center;background-color: var(--vu-background);~{~(~A~): ~a; ~}~@[~a~]" args style) :db-val db-val)))
+    (js-execute vu-container (format nil "vumeter(~A, {\"boxCount\": 40, \"ledColors\": ~a, \"barColor\": ~a, \"vuType\": '~(~a~)', \"inputMode\": '~(~a~)', \"displayMap\": '~(~a~)', \"direction\": '~(~a~)', \"innerPadding\": '~(~a~)', \"innerPaddingBottom\": '~(~a~)'})"
                                   (jquery vu-container)
-                                  (if led-colors (cols->jsarray led-colors) "false")
+                                  (if led-colors (if (symbolp led-colors) (format nil "\"~(~a~)\"" led-colors) (cols->jsarray led-colors)) "false")
                                   bar-color
-                                  vu-type input-mode display-map direction))))
+                                  vu-type input-mode display-map direction
+                                  (or inner-padding "false")
+                                  (or inner-padding-bottom "false")))))
+
 
 #|
 (break (format nil "vumeter(~A, {\"boxCount\": 40, \"ledColors\": ~a, \"barColor\": ~a, \"vuType\": '~a', \"inputMode\": '~a', \"displayMap\": '~a' })"
@@ -345,3 +329,42 @@ UserSelect
                                   (jquery vu-container)
                                   vu-type input-mode display-map))
 |#
+
+(defun multi-vu (container &key (num 8) (width 80) (height 100) background (direction :up) (border "")
+                           (inner-background "var(--vu-background)") (inner-border "") inner-padding inner-padding-bottom
+                           led-colors style
+                             receiver-fn)
+  (declare (ignorable receiver-fn))
+  (let* ((mvu-container (create-div container
+                                    :style (format nil "color: transparent; background-color: ~a;border: ~a;width: ~Apx;height: ~Apx;display: flex;padding: 0pt;~@[~A~]" (or background "transparent") border width height style)))
+         (vus (v-collect (n num) (vumeter
+                                  mvu-container
+                                  :led-colors led-colors
+                                  :direction direction
+                                  :border inner-border
+                                  :db-val 0
+                                  :width "100%"
+                                  :height "100%"
+                                  :border-right-width (if (< n (1- num)) 0 1)
+                                  :background (or inner-background background "var(--vu-background)")
+                                  :inner-padding inner-padding
+                                  :inner-padding-bottom inner-padding-bottom))))
+    ;; (loop for vu in vus
+    ;;       for idx from 0
+    ;;       do (let ((vu vu) (idx idx))
+    ;;            (set-on-input
+    ;;             vsl
+    ;;             (lambda (obj)
+    ;;               (declare (ignore obj))
+    ;;               (let ((val (value vsl)))
+    ;;                 (if receiver-fn (funcall receiver-fn idx val vsl)))))
+    ;;            (set-on-mouse-move
+    ;;             vsl
+    ;;             (lambda (obj event-data)
+    ;;               (declare (ignore obj))
+    ;;               (when (or (getf event-data :shift-key))
+    ;;                 (let ((val (- 100 (getf event-data :y))))
+    ;;                   (when val
+    ;;                     (setf (value vsl) val)
+    ;;                     (if receiver-fn (funcall receiver-fn idx val vsl)))))))))
+    (values vus mvu-container)))

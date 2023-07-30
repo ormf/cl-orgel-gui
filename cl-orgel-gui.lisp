@@ -27,60 +27,37 @@
   (base-freq "0.0")
   (min-amp "0.0")
   (max-amp "1.0")
-  (level-sliders (make-array 16)))
+  (level-sliders (make-array 16))
+  (delay-sliders (make-array 16))
+  (bp-sliders (make-array 16))
+  (gain-sliders (make-array 16))
+  (osc-level-sliders (make-array 16)))
 
 (defparameter *curr-orgel-state*
   (make-orgel :level-sliders (make-array 16 :initial-element "0.0")))
-
-(defparameter *background-color* "#607d8b")
-(defparameter *colors* #("#ffa0ff" "#ffffa0" "#a0ffff" "#ffe0e0" "#a0ffa0" "#e0e0ff" "#efd7e7" "#cccccc"))
-
-(defparameter *vsl-colors*
-  (map 'vector (lambda (idx)  (aref *colors* idx)) '(0 0 1 0 2 1 3 0 4 2 5 1 6 3 7 0)))
 
 (defvar *global-connection-hash*
   (make-hash-table* :test 'equalp)
   "map connection to orgel form elems.")
 
-(defun new-connection-id ()
-  (format nil "~a" (uuid:make-v1-uuid)))
-
-(defun synchronize-vsl (idx val self)
-  (let ((val-string (ensure-string val)))
-    (setf (aref (orgel-level-sliders *curr-orgel-state*) idx) val-string)
-    (maphash (lambda (connection-id connection-hash)
-               (declare (ignore connection-id))
-               (let ((orgel (gethash "orgel" connection-hash)))
-                 (when orgel (let ((elem (aref (orgel-level-sliders orgel) idx)))
-                               (unless (equal self elem) (setf (value elem) val-string))))))
-             clog-connection::*connection-data*)))
-
-(defun synchronize-numbox (slot val self)
-  (let ((val-string (ensure-string val)))
-    (setf (slot-value *curr-orgel-state* slot) val-string)
-    (maphash (lambda (connection-id connection-hash)
-               (declare (ignore connection-id))
-               (let ((orgel (gethash "orgel" connection-hash)))
-                 (when orgel
-                   (let ((elem (slot-value (gethash "orgel" connection-hash) slot)))
-                     (unless (equal self elem) (setf (value elem) val-string))))))
-             clog-connection::*connection-data*)))
 
 (defmethod clog:create-div ((obj clog-obj) &rest args
                             &key (content "")
                               (style nil)
                               (hidden nil)
+                            height width
                               (class nil)
                               (html-id nil)
                               (auto-place t)
                             &allow-other-keys)
-  (dolist (key '(:hidden :html-id :auto-place)) (remf args key))
-  (when (or hidden style)
-    (setf (getf args :style) (format nil "~@[~a~]~@[~a~]"
-                                     (if hidden "visibility:hidden;") style)))
+  (when (or hidden style width height)
+    (setf (getf args :style) (format nil "~@[~a~]~@[~a~]~@[~a~]~@[~a~]"
+                                     (when hidden "visibility:hidden;") style
+                                     (when width (format nil "width: ~a;" (addpx width)))
+                                     (when height (format nil "height: ~a;" (addpx height))))))
+  (dolist (key '(:hidden :html-id :auto-place :width :height)) (remf args key))
   (when class (setf (getf args :class) (format nil "~A" (escape-string class :html t))))
-
-  (create-child obj (format nil "<div ~{~(~A~)= \"~a\"~^ ~}>~A</div>"
+  (create-child obj (format nil "<div ~{~(~A~)= \"~(~a~)\"~^ ~}>~A</div>"
                             args
                             content)
                 :clog-type  'clog-div
@@ -102,7 +79,7 @@
     ;; When doing extensive setup of a page using connection cache
     ;; reduces rountrip traffic and speeds setup.
     (with-connection-cache (body)
-      (let* (p1 p2 nbs1 nbs2 tg1 tg2 vsliders vu1 vu2 vutest vuleds)
+      (let* (p1 p2 nbs1 nbs2 tg1-container tg2-container vsliders vu1 vu2)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
         ;; Panel 1 contents
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -113,80 +90,48 @@
         ;;                       "#ff00ff"))
         (create-br body)
         (setf p1  (create-div body :style "margin-left: 20px;"))
-        (setf p2  (create-div body :style "margin-left: 20px;"))
-        (setf p2 (create-div p1 :style "width: 160px;height: 60px;display: flex;justify-content: space-between;"))
+        (create-div p1 :content "Orgel01" :style "align: bottom; padding-bottom: 10px;")
+        (setf p2 (create-div p1 :style "width: 160px;height: 60px;display: flex;justify-content: space-between;margin-bottom: 10px"))
         (setf nbs1 (create-div p2 :style "width: 75px;font-size: 6pt;display: flex;flex-direction: column;justify-content: space-between;")) ;;; container for numberbox(es)
         (setf nbs2 (create-div p2 :style "width: 73px; font-size: 6pt;display: flex;flex-direction: column;justify-content: space-between;")) ;;; container for numberbox(es)
-        ;; (setf nb-freq (numbox nbs1 :label "freq" :color "black" :background-color "#fff" :receiver-fn #'synchronize-numbox :slot 'orgel-freq))
-        ;; (setf (orgel-freq orgel) nb-freq)
-        ;; (setf (value nb-freq) (orgel-freq *curr-orgel-state*))
-;;        (setf d1 (create-div nbs1 :style "display: flex;align-items: baseline;justify-content: space-between;"))
         (init-numboxes
          (:ramp-up :ramp-down :exp-base :base-freq :max-amp :min-amp)
          (nbs1 nbs1 nbs1 nbs2 nbs2 nbs2)
          :size 6)
-        (setf tg1 (create-div nbs1 :style "display: flex;justify-content: right;"))
-
-        (toggle tg1 :content "phase" :toggle-content "inv" :size 6 :background "lightgreen" :selected-background "red"
+        (setf tg1-container (create-div nbs1 :style "display: flex;justify-content: right;")) ;;; container for right alignment of toggle
+        (toggle tg1-container :content "phase" :toggle-content "inv" :size 6 :background "lightgreen" :selected-background "red"
                    :selected-foreground "white" :slot :phase
                    :receiver-fn (lambda (slot state obj) (declare (ignore obj))
                                   (format t "~S clicked, state: ~a!~%" slot state)))
-        (setf tg2 (create-div nbs2 :style "display: flex;justify-content: right;"))
-        (toggle tg2 :content "bandp" :toggle-content "notch" :size 6 :background "lightgreen" :selected-background "orange"
+        (setf tg2-container (create-div nbs2 :style "display: flex;justify-content: right;")) ;;; container for right alignment of toggle
+        (toggle tg2-container :content "bandp" :toggle-content "notch" :size 6 :background "lightgreen" :selected-background "orange"
                         :style "align-content: right;" :slot :bandp
                         :receiver-fn (lambda (slot state obj) (declare (ignore obj))
                                        (format t "~S clicked, state: ~a!~%" slot state)))
-        (setf vsliders
-              (multi-vslider p1 :num 16 :width 160 :colors *vsl-colors* :background-color "transparent"
-                                         :receiver-fn #'synchronize-vsl))
+        (setf *my-vu* (setf vu1 (multi-vu p1 :num 16 :width 160 :height 80 :led-colors :blue :direction :up :background "#444"
+                                             :inner-background "transparent"
+                                             :border "thin solid black" :inner-border "none" :inner-padding-bottom "0px"
+                                             :inner-padding "3px"
+                                             :style "margin-bottom: 10px;")))
+        (setf vsliders (create-slider-panel p1 :label "Level"))
         (hslider p1 :background-color "#444" :color "#444" :thumbcolor "orange" :height "8px" :width "160px")
-        (create-br p1)
-;;;        (multi-vslider p1 :colors *vsl-colors* :background-color "transparent")
+        (dolist (label '("Delay" "Bp" "Gain" "Osc-Level"))
+          (setf vsliders (create-slider-panel p1 :label label)))
+;;;        (create-br p1)
         (loop for vsl in vsliders
               for idx from 0
               do (progn
                    (setf (value vsl)
                          (aref (orgel-level-sliders *curr-orgel-state*) idx))
                    (setf (aref (orgel-level-sliders orgel) idx) vsl)))
-;;        (setf vu1 (create-canvas p1 :class "vumeter" :width "10px" :height "126px" :data-val 30))
-                
-        ;; (js-execute body (format nil "vumeter(~A, {\"boxCount\": 40, \"boxGapFraction\": 0.01, \"max\":100, })"
-        ;;                          (jquery vu1)))
-
-        (setf *my-vu* (setf vu1 (vumeter p1 :db-val 0 :direction :up)))
-        (setf vu2 (vumeter p1 :db-val -30 :direction :up))
-
-;;;        (jquery-execute vu1 (format nil "setAttribute('data-val', '~A')" (escape-string 45)))
-
-;;;        (js-execute (jquery vu1) (format nil "setAttribute('data-val', '~A')" (escape-string 45)))
-
-;;;        (setf (attribute vu1 "db-val") 12)
-;;;        (setf (property vu1 :width) 150)
-
-        ;; (setf *my-vu*
-        ;;       (setf vu2 (create-div p1 :class "vumeter" :style "width: 10px; height: 126px;background-color: #222;justify-content: center;" :db-val -100)))
-        ;; 
-        ;; ;; ;; (js-execute body (format nil "vumeter(~A, {\"boxCount\": 40, \"boxGapFraction\": 0.01, \"max\":100, })"
-        ;; ;; ;;                          (jquery vu1)))
-        ;; (js-execute vu2 (format nil "vumeter(~A, {\"boxCount\": 40, \"boxGapFraction\": 0.01, \"max\":100, \"db-val\":0})"
-        ;;                          (jquery vu2)))
-        (setf (attribute vu1 "db-val") -100)
-        (setf (attribute vu2 "db-val") 12)
-        ;; (setf vutest (create-div p1 :class "vumeter" :style "width: 10px;height: 85px; background-color: #222;justify-content: center;"))
-        ;; (setf vuleds (create-div vutest :style "width: 100%;padding: 2px;height: 100%;display: flex;flex-direction: column; justify-content: space-between;"))
-        ;; 
-        ;; (create-span vuleds :style "background-color: #0f0; border: thin solid black;height: 100%;width: 100%;")
-        ;; (loop repeat 39
-        ;;       do (create-span vuleds :style "background-color: #0f0; border: thin solid black;border-top-style: none; margin:0;height: 100%;width: 100%;"))
-
-        
-;;;        (set-border p1 :thin :solid :black)
-        )) ;;; text style))
-))
+        (setf vu2 (vumeter p1 :db-val -30 :led-colors :blue :direction :up))
+;;        (setf (attribute vu1 "db-val") -100)
+;;        (setf (attribute vu2 "db-val") 12)
+        ))))
 
 (defparameter *my-vu* nil)
 
-;;; (setf (attribute *my-vu* "db-val") "0")
+;;; (dolist (vu *my-vu*) (setf (attribute vu "db-val") (- (random 113) 100)))
 ;;; (setf (attribute *my-vu* "db-val") 4)
 
 ;;; (setf (width vu1))

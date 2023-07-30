@@ -13,5 +13,6 @@
   :components ((:file "package")
                (:file "utils")
                (:file "widget-defs")
+               (:file "styles")
                (:file "cl-orgel-gui")
                (:file "init")))
