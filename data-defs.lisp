@@ -49,6 +49,4 @@
                      :initial-contents (v-collect (n *orgelcount*) (make-orgel))))
   (presets (make-gui-presets)))
 
-(defparameter *papierrohrorgeln* (make-orgel-gui))
-
-(defparameter *curr-orgel-state* (aref (orgel-gui-orgeln *papierrohrorgeln*) 0))
+(defparameter *curr-orgel-state* (make-orgel-gui))

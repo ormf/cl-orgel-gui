@@ -58,7 +58,7 @@
     ;; When doing extensive setup of a page using connection cache
     ;; reduces rountrip traffic and speeds setup.
     (let ((orgel (aref (orgel-gui-orgeln orgel-gui) 0))
-          (global-orgel-ref (aref (orgel-gui-orgeln *papierrohrorgeln*) 0)))
+          (global-orgel-ref (aref (orgel-gui-orgeln *curr-orgel-state*) 0)))
       (with-connection-cache (body)
         (let* (p1 p2 p3 p4 nbs1 nbs2 tg1-container tg2-container vsliders vu1 vu2)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
