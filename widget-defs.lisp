@@ -182,7 +182,7 @@ UserSelect
                   (setf mouse-dragged t)
                   (let ((val-string (format nil "~,1f" val)))
                     (setf (value elem) val-string)
-                    (funcall receiver-fn slot val-string elem))
+                    (funcall receiver-fn val-string elem))
                   (setf last-y y last-val val)))))))))
     (set-on-key-up
      elem
@@ -193,7 +193,7 @@ UserSelect
            (unless (numberp (read-from-string val))
              (setf val (format nil "~,1f" startvalue)))
            (setf (value elem) val)
-           (funcall receiver-fn slot val elem))
+           (funcall receiver-fn val elem))
          (blur elem))))
     (set-on-mouse-up
      elem
