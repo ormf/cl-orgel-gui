@@ -57,7 +57,8 @@
           orgel-gui)
     ;; When doing extensive setup of a page using connection cache
     ;; reduces rountrip traffic and speeds setup.
-    (let ((orgel (aref (orgel-gui-orgeln orgel-gui) 0)))
+    (let ((orgel (aref (orgel-gui-orgeln orgel-gui) 0))
+          (global-orgel-ref (aref (orgel-gui-orgeln *papierrohrorgeln*) 0)))
       (with-connection-cache (body)
         (let* (p1 p2 p3 p4 nbs1 nbs2 tg1-container tg2-container vsliders vu1 vu2)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -79,6 +80,7 @@
           (init-numboxes
            (:ramp-up :ramp-down :exp-base :base-freq :max-amp :min-amp)
            (nbs1 nbs1 nbs1 nbs2 nbs2 nbs2)
+           orgel global-orgel-ref
            :size 6)
           (setf tg1-container (create-div nbs1 :style "display: flex;justify-content: right;")) ;;; container for right alignment of toggle
           (toggle tg1-container :content "phase" :toggle-content "inv" :size 6 :background "lightgreen" :selected-background "red"
@@ -107,8 +109,7 @@
           (loop for vsl in vsliders
                 for idx from 0
                 do (progn
-                     (setf (value vsl)
-                           (aref (orgel-level-sliders *curr-orgel-state*) idx))
+                     (setf (value vsl) (aref (orgel-level-sliders global-orgel-ref) idx))
                      (setf (aref (orgel-level-sliders orgel) idx) vsl)))
           (setf vu2 (vumeter p1 :db-val -30 :led-colors :blue :direction :up))
           ;;        (setf (attribute vu1 "db-val") -100)
@@ -122,7 +123,6 @@
 ;;; (setf (width vu1))
     (defun start-orgel-gui ()
   "Start Orgel Gui."
-  (setf *global-connection-hash* (make-hash-table* :test 'equalp))
   (initialize 'on-new-window
               :static-root (merge-pathnames "./www/"
                                             (asdf:system-source-directory :cl-orgel-gui)))

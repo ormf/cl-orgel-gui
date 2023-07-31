@@ -23,7 +23,7 @@
 (defun ensure-string (token)
   (if (stringp token) token (format nil "~S" token)))
 
-(defmacro init-numbox (slot parent &key (size 10))
+(defmacro init-numbox (slot parent local-orgel global-orgel &key (size 10))
   (let ((name (intern (format nil "~:@(nb-~a~)" slot)))
         (accessor (intern (format nil "~:@(orgel-~a~)" slot)))
         (slot-label (intern (format nil "~:@(~a~)" slot))))
@@ -35,26 +35,26 @@
                            :receiver-fn #'synchronize-numbox
                            :slot ',slot-label
                            :size ,size)))
-       (setf (,accessor orgel) ,name)
-       (setf (value ,name) (,accessor *curr-orgel-state*)))))
+       (setf (,accessor ,local-orgel) ,name)
+       (setf (value ,name) (,accessor ,global-orgel)))))
 
 
-;;; (init-numbox :base-freq nbs1)
+;;; (init-numbox :base-freq nbs1 (aref (orgel-gui-orgeln *papierrohrorgeln*) 0))
 
-(defun collect-terms (slots containers size)
+(defun collect-terms (slots containers local-orgel global-orgel size)
   (loop
     for slot in slots
     for container in containers
-    collect `(init-numbox ,slot ,container :size ,size)))
+    collect `(init-numbox ,slot ,container ,local-orgel ,global-orgel :size ,size)))
 
 #|
 (collect-terms '(:ramp-up :ramp-down :exp-base :base-freq :max-amp :min-amp)
                '(nbs1 nbs1 nbs1 nbs2 nbs2 nbs2))
 |#
 
-(defmacro init-numboxes (slots containers &key (size 10))
+(defmacro init-numboxes (slots containers local-orgel global-orgel &key (size 10))
   `(progn
-     ,@(collect-terms slots containers size)))
+     ,@(collect-terms slots containers local-orgel global-orgel size)))
 
 (defparameter *slot-labels* '((:ramp-down . :ramp-dwn)))
 
