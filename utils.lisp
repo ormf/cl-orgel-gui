@@ -84,13 +84,20 @@
   (apply #'multi-vslider container *msl-style*))
 
 (defun synchronize-vsl (idx val self)
+  (declare (ignore idx val self)))
+
+(defun synchronize-numbox (slot val self)
+  (declare (ignore slot val self)))
+#|
+
+(defun synchronize-vsl (idx val self)
   (let ((val-string (ensure-string val)))
     (setf (aref (orgel-level-sliders *curr-orgel-state*) idx) val-string)
     (maphash (lambda (connection-id connection-hash)
                (declare (ignore connection-id))
-               (let ((orgel (gethash "orgel" connection-hash)))
-                 (when orgel (let ((elem (aref (orgel-level-sliders orgel) idx)))
-                               (unless (equal self elem) (setf (value elem) val-string))))))
+               (let ((orgel-gui (gethash "orgel-gui" connection-hash)))
+                 (when orgel-gui (let ((elem (aref (orgel-level-sliders orgel) idx)))
+                                   (unless (equal self elem) (setf (value elem) val-string))))))
              clog-connection::*connection-data*)))
 
 (defun synchronize-numbox (slot val self)
@@ -98,8 +105,27 @@
     (setf (slot-value *curr-orgel-state* slot) val-string)
     (maphash (lambda (connection-id connection-hash)
                (declare (ignore connection-id))
-               (let ((orgel (gethash "orgel" connection-hash)))
-                 (when orgel
-                   (let ((elem (slot-value (gethash "orgel" connection-hash) slot)))
+               (let ((orgel-gui (gethash "orgel-gui" connection-hash)))
+                 (when orgel-gui
+                   (let ((elem (slot-value (gethash "orgel-gui" connection-hash) slot)))
                      (unless (equal self elem) (setf (value elem) val-string))))))
              clog-connection::*connection-data*)))
+
+(defun make-vsl-synchronizer (slot orgelidx)
+  (labels ((accessor)))
+
+  )
+|#
+
+(defun slot->function (struct-name slot)
+  "get the function object for a slot of a struct with prefix"
+  (symbol-function (intern (string-upcase (format nil "~a-~a" struct-name slot)))))
+
+#|
+(defun get-vsl-accessor (orgelidx slot faderidx)
+  (lambda (orgelgui)
+    (aref (funcall (slot->function "gui-orgel" slot)
+                   (gui-orgel-data-params
+                    (aref (orgel-gui-orgeln orgelgui) orgelidx)))
+          faderidx)))
+|#

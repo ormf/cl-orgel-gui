@@ -11,6 +11,7 @@
   :depends-on (#:clog #:orm-utils #:uuid)
   :serial t
   :components ((:file "package")
+               (:file "data-defs")
                (:file "utils")
                (:file "widget-defs")
                (:file "styles")
