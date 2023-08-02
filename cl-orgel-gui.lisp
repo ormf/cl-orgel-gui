@@ -44,15 +44,7 @@
                 :auto-place auto-place))
 
 (defun create-orgel-gui (orgelidx container orgel global-orgel-ref)
-      (let* (p1 p2 p3 p4 nbs1 nbs2 tg1-container tg2-container vsliders vu1)
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-        ;; Panel 1 contents
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-        ;; (make-data-list vsl1 '("#ffffff"
-        ;;                       "#ff0000"
-        ;;                       "#00ff00"
-        ;;                       "#0000ff"
-        ;;                       "#ff00ff"))
+      (let* (p1 p2 p3 p4 nbs1 nbs2 tg1-container tg2-container vsliders)
         (create-br container)
         (setf p1  (create-div container :style "margin-left: 10px;"))
         (create-div p1 :content (format nil "Orgel~2,'0d" (1+ orgelidx)) :style "align: bottom; padding-bottom: 10px;")
@@ -67,27 +59,24 @@
          orgelidx orgel global-orgel-ref
          :size 6)
         (setf tg1-container (create-div nbs1 :style "display: flex;justify-content: right;")) ;;; container for right alignment of toggle
-        (toggle tg1-container :content "phase" :toggle-content "inv" :size 6 :background "lightgreen" :selected-background "red"
-                              :selected-foreground "white" :slot :phase
-                              :receiver-fn (lambda (slot state obj) (declare (ignore obj))
-                                             (format t "~S clicked, state: ~a!~%" slot state)))
+        (init-toggle :phase tg1-container orgelidx orgel global-orgel-ref :content "phase" :toggle-content "inv" :size 6 :background "lightgreen" :selected-background "red" :selected-foreground "white")
         (setf tg2-container (create-div nbs2 :style "display: flex;justify-content: right;")) ;;; container for right alignment of toggle
         (toggle tg2-container :content "bandp" :toggle-content "notch" :size 6 :background "lightgreen" :selected-background "orange"
                               :style "align-content: right;" :slot :bandp
-                              :receiver-fn (lambda (slot state obj) (declare (ignore obj))
-                                             (format t "~S clicked, state: ~a!~%" slot state)))
+                              :receiver-fn (make-orgel-attr-val-receiver :bandp orgelidx global-orgel-ref))
 ;;;        (create-br p3)
-        (setf *my-vu* (setf vu1 (multi-vu p3 :num 16 :width 160 :height 80 :led-colors :blue :direction :up :background "#444"
-                                             :inner-background "#444"
-                                             :border "none" :inner-border "thin solid black" :inner-padding-bottom "0px"
-                                             :inner-padding "0"
-                                             :style "margin-bottom: 10px;")))
+        (setf *my-vus*
+              (multi-vu p3 :num 16 :width 160 :height 80 :led-colors :blue :direction :up :background "#444"
+                           :inner-background "#444"
+                           :border "none" :inner-border "thin solid black" :inner-padding-bottom "0px"
+                           :inner-padding "0"
+                           :style "margin-bottom: 10px;"))
         ;;; main volume slider
         (vslider p4 :style "width: 10px;height: 100% ;--slider-thumb-height: 2px;--slider-thumb-width: 100%;flex: 0 0 auto;"
                     :thumbcolor "orange" :color "#444" :background "#444")
 
         (create-div p1 :height 10) ;;; distance
-        (setf vsliders (create-slider-panel p1 :label "Level" :receiver-fn (make-vsl-receiver :level-sliders orgelidx global-orgel-ref)))
+        (setf vsliders (create-slider-panel p1 :label "Level" :receiver-fn (make-orgel-array-receiver :level-sliders orgelidx global-orgel-ref)))
         (loop for vsl in vsliders
               for idx from 0
               do (progn
@@ -98,7 +87,7 @@
           (let ((slot-name (make-symbol (format nil "~:@(~a-sliders~)" label))))
             (setf vsliders (create-slider-panel p1
                                                 :label label
-                                                :receiver-fn (make-vsl-receiver
+                                                :receiver-fn (make-orgel-array-receiver
                                                               slot-name
                                                               orgelidx global-orgel-ref)))
 
@@ -121,6 +110,7 @@
     (clog-gui-initialize body)
     (setf connection-id (clog::connection-id body))
     (load-script (html-document body) "js/vumeter.js")
+    (load-script (html-document body) "js/toggle.js")
     (setf (title (html-document body)) "Orgel Sliders")
     (add-class body "w3-blue-grey") ;;; background color
     (load-css (html-document body) "/css/w3.css")
@@ -136,7 +126,7 @@
                 (global-orgel-ref (aref (orgel-gui-orgeln *curr-orgel-state*) i)))
             (create-orgel-gui i gui-container orgel global-orgel-ref)))))))
 
-;;; (defparameter *my-vu* nil)
+(defparameter *my-vus* nil)
 
 ;;; (setf (attribute *my-vu* "db-val") 4)
 

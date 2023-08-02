@@ -37,6 +37,33 @@ input[type=text] {
 /*     background-color: var(--textbox-selected-background); */
 /* } */
 
+[type="checkbox"] + label {
+  position: absolute;
+}
+[type="checkbox"] {
+  position: relative;
+  left: 15px;
+  top: -4px;
+  z-index: 0;
+  -webkit-appearance: none;
+}
+[type="checkbox"] + label::before {
+  width: 15px;
+  height: 15px;
+  background-color: #000;
+  display: block;
+  content: "";
+  float: left;
+  margin-right: 5px;
+  z-index: 5;
+  position: relative;
+}
+
+input[type="checkbox"]:checked+label::before {
+  background-color: #c72f2f;
+}
+
+
 .numbox::selection {
     user-select: none;
     color: var(--textbox-selected-foreground); 

@@ -23,6 +23,36 @@
 (defun ensure-string (token)
   (if (stringp token) token (format nil "~S" token)))
 
+
+#|
+
+ ;
+
+|#
+
+(defmacro init-toggle (slot parent orgelidx local-orgel global-orgel
+                       &key (size 10)
+                         (content "")
+                         (toggle-content "")
+                         (color "black")
+                         (background "white")
+                         (selected-background "gray")
+                         (selected-foreground "black"))
+  (let ((name (intern (format nil "~:@(nb-~a~)" slot)))
+        (accessor (intern (format nil "~:@(orgel-~a~)" slot))))
+    `(let* ((,name (toggle ,parent
+                           :size ,size
+                           :content ,content
+                           :toggle-content ,toggle-content
+                           :color ,color
+                           :background ,background
+                           :selected-background ,selected-background
+                           :selected-foreground ,selected-foreground
+                           :slot ,slot
+                           :receiver-fn (make-orgel-attr-val-receiver :phase ,orgelidx ,global-orgel))))
+       (setf (,accessor ,local-orgel) ,name)
+       (setf (attribute ,name "val") (,accessor ,global-orgel)))))
+
 (defmacro init-numbox (slot parent orgelidx local-orgel global-orgel &key (size 10))
   (let ((name (intern (format nil "~:@(nb-~a~)" slot)))
         (accessor (intern (format nil "~:@(orgel-~a~)" slot)))
@@ -32,7 +62,7 @@
             (,name (numbox container
                            :label ,(format nil "~(~A~)" (slot-label slot))
                            :color "black" :background-color "#fff"
-                           :receiver-fn (make-numbox-receiver ,slot ,orgelidx ,global-orgel)
+                           :receiver-fn (make-orgel-val-receiver ,slot ,orgelidx ,global-orgel)
                            :slot ',slot-label
                            :size ,size)))
        (setf (,accessor ,local-orgel) ,name)
@@ -89,7 +119,23 @@ orgel1 orgel2
   (create-div container :content label :style *msl-title-style*)
   (apply #'multi-vslider container :receiver-fn receiver-fn *msl-style*))
 
-(defun make-numbox-receiver (slot orgelidx global-orgel-ref)
+(defun make-orgel-attr-val-receiver (slot orgelidx global-orgel-ref)
+  (let ((slot-symbol (intern (format nil "~:@(~a~)" slot) 'cl-orgel-gui)))
+    (lambda (val self)
+      (let* ((val-string (ensure-string val))
+;;;             (num-val (read-from-string val-string))
+             )
+        (setf (slot-value global-orgel-ref slot-symbol) val-string)
+        (maphash (lambda (connection-id connection-hash)
+                   (declare (ignore connection-id))
+;;;                   (break "~a" (gethash "orgel-gui" connection-hash))
+                   (let* ((orgel-gui (gethash "orgel-gui" connection-hash)))
+                     (when orgel-gui (let ((elem (slot-value (aref (orgel-gui-orgeln orgel-gui) orgelidx) slot-symbol)))
+;;;                                       (break "self: ~a~% elem: ~a" self elem)
+                                       (unless (equal self elem) (setf (attribute elem "val") val-string))))))
+                 clog-connection::*connection-data*)))))
+
+(defun make-orgel-val-receiver (slot orgelidx global-orgel-ref)
   (let ((slot-symbol (intern (format nil "~:@(~a~)" slot) 'cl-orgel-gui)))
     (lambda (val self)
       (let* ((val-string (ensure-string val))
@@ -105,7 +151,7 @@ orgel1 orgel2
                                        (unless (equal self elem) (setf (value elem) val-string))))))
                  clog-connection::*connection-data*)))))
 
-(defun make-vsl-receiver (slot orgel-idx global-orgel-ref)
+(defun make-orgel-array-receiver (slot orgel-idx global-orgel-ref)
   (let ((accessor (slot->function "orgel" slot)))
     (lambda (idx val self)
       (let* ((val-string (ensure-string val))

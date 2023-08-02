@@ -10,7 +10,7 @@ function vumeter(elem, config){
     var vuInnerPadding = config.innerPadding || '2px';
     var vuInnerPaddingBottom = config.innerPaddingBottom || '2px';
 
-    console.log(config);
+//    console.log(config);
     
     // Colours
     var redOn     = 'rgba(255,47,30,1.0)';
@@ -65,8 +65,8 @@ function vumeter(elem, config){
     var colors = [];
 
     var vuMeter = elem.get(0);
-    console.log('vuMeter: ' + vuMeter);
-    console.log('ledColors: ' + ledColors);
+//    console.log('vuMeter: ' + vuMeter);
+//    console.log('ledColors: ' + ledColors);
 
     var vuLedContainer = document.createElement("div");
     vuLedContainer.style.height = "100%";

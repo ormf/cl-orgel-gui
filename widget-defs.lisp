@@ -210,35 +210,68 @@ UserSelect
                            (setf mouse-dragged nil)))
     elem))
 
+(defmethod clog::create-button ((obj clog-obj)
+                                &rest args
+                                &key (content "")
+                                  (style nil)
+                                  (hidden nil)
+                                  (class nil)
+                                  (html-id nil)
+                                  (auto-place t)
+                                &allow-other-keys)
+  (create-child obj (format nil "<button~@[~A~]~@[~A~]~@[~A~]>~A</button>"
+                            (when class
+                              (format nil " class='~A'"
+                                      (escape-string class :html t)))
+                            (when (getf args :tg-val) (format nil "tg-val = ~a" (ensure-string (getf args :tg-val))))
+                            (when (or hidden style)
+                              (format nil " style='~@[~a~]~@[~a~]'"
+                                      (when hidden "visibility:hidden;")
+                                      style))
+                            content)
+                :clog-type  'clog-button
+                :html-id    html-id
+                :auto-place auto-place))
+
+
+
 (defun toggle (container &key (style "") (content "") (size 6)
                            (color "black")
                            (background "white")
                            (selected-foreground "black")
                            (selected-background "orange")
-                           receiver-fn toggle-content
-                           slot
-                           )
+                           receiver-fn (toggle-content "")
+                           slot)
   (let ((btn (create-button container :class "toggle"
                                       :style (format nil "~A width: ~A;height: ~Apx;font-size: ~Apt;color: ~A;background-color: ~A;"
                                                      style (* 5 size) (* 2 size) size color background)
                                       :content content
-                                      ))
+                                      :tg-val "0.0"))
         (button-state nil))
+    (let ((str (format nil "toggle(~A, { \"colorOff\": '~(~a~)', \"backgroundOff\": '~(~a~)', \"labelOff\": '~(~a~)', \"colorOn\": '~(~a~)', \"backgroundOn\": '~(~a~)', \"labelOn \": '~(~a~)'})"
+                            (jquery btn)
+                            color background content
+                            selected-foreground selected-background toggle-content)))
+      (js-execute btn str)
+      )
     (set-on-click
      btn
      (lambda (obj)
        (if button-state
            (progn
-             (setf (style obj "color") color)
-             (setf (style obj "background-color") background)
-             (setf (text obj) content)
+             ;; (setf (style obj "color") color)
+             ;; (setf (style obj "background-color") background)
+             ;; (setf (text obj) content)
+             (setf (attribute obj "tg-val") 0.0)
              (setf button-state nil))
            (progn
-             (setf (style obj "color") selected-foreground)
-             (setf (style obj "background-color") selected-background)
-             (if toggle-content (setf (text obj) toggle-content))
+             ;; (setf (style obj "color") selected-foreground)
+             ;; (setf (style obj "background-color") selected-background)
+             ;; (if toggle-content (setf (text obj) toggle-content))
+             (setf (attribute obj "tg-val") 1.0)
              (setf button-state t)))
-       (if receiver-fn (funcall receiver-fn slot button-state obj))))
+       (if receiver-fn (let ((val (if button-state "1.0" "0.0")))
+                         (funcall receiver-fn val obj)))))
     (set-on-mouse-down
      btn
      (lambda (obj event)
@@ -253,36 +286,7 @@ UserSelect
              (setf (style obj "color") selected-foreground)
              (setf (style obj "background-color") selected-background)
              (if toggle-content (setf (text obj) toggle-content))))))
-    ;; (set-on-mouse-up
-    ;;  body ;;; has to be the body!
-    ;;  (lambda (obj event)
-    ;;    (declare (ignore event))
-    ;;    (setf mouse-down nil)))
-    ;; (set-on-mouse-leave
-    ;;  btn
-    ;;  (lambda (obj)
-    ;;    (if button-state
-    ;;        (progn
-    ;;          (setf (style obj "color") selected-foreground)
-    ;;          (setf (style obj "background-color") selected-background)
-    ;;          (if toggle-content (setf (text obj) toggle-content)))
-    ;;        (progn
-    ;;          (setf (style obj "color") color)
-    ;;          (setf (style obj "background-color") background)
-    ;;          (setf (text obj) content)))))
-    ;; (set-on-mouse-enter
-    ;;  btn
-    ;;  (lambda (obj)
-    ;;    (if button-state
-    ;;        (progn
-    ;;          (setf (style obj "color") color)
-    ;;          (setf (style obj "background-color") background)
-    ;;          (setf (text obj) content))
-    ;;        (progn
-    ;;          (setf (style obj "color") selected-foreground)
-    ;;          (setf (style obj "background-color") selected-background)
-    ;;          (if toggle-content (setf (text obj) toggle-content))))))
-    ))
+    btn))
 
 (deftype vu-type () '(member :led :bar))
 (deftype vu-input-mode () '(member :db :lin))
