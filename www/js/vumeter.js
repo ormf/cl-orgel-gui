@@ -115,8 +115,8 @@ function vumeter(elem, config){
 
     // Main draw function
     var drawLed = function() {
-        var targetDB = 100+parseInt(vuMeter.getAttribute("db-val"), 10)
-//        console.log('redraw!' + vuMeter.getAttribute("db-val") + ', dB: ' + targetDB);
+        var targetDB = 100+parseInt(vuMeter.getAttribute("data-db"), 10)
+//        console.log('redraw!' + vuMeter.getAttribute("data-db") + ', dB: ' + targetDB);
         if (targetDB > 112)
             targetDB=112;
         else { if (targetVal < 0) tarvetVal = 0; }
@@ -150,8 +150,8 @@ function vumeter(elem, config){
             //        console.log("--trace, key: " + key + ', value: ' + value);
             // use call, to set the context and prevent illegal invocation errors
             mySetAttribute.call(vuMeter, key, value);
-            //        if (key == 'db-val') drawBoxes(c, value);
-            if (key == 'db-val') drawLed();
+            //        if (key == 'data-db') drawBoxes(c, value);
+            if (key == 'data-db') drawLed();
 
         }
         drawLed();

@@ -59,7 +59,7 @@
          orgelidx orgel global-orgel-ref
          :size 6)
         (setf tg1-container (create-div nbs1 :style "display: flex;justify-content: right;")) ;;; container for right alignment of toggle
-        (init-toggle :phase tg1-container orgelidx orgel global-orgel-ref :content "phase" :toggle-content "inv" :size 6 :background "lightgreen" :selected-background "red" :selected-foreground "white")
+        (setf *tg1* (init-toggle :phase tg1-container orgelidx orgel global-orgel-ref :content "phase" :toggle-content "inv" :size 6 :background "lightgreen" :selected-background "red" :selected-foreground "white"))
         (setf tg2-container (create-div nbs2 :style "display: flex;justify-content: right;")) ;;; container for right alignment of toggle
         (toggle tg2-container :content "bandp" :toggle-content "notch" :size 6 :background "lightgreen" :selected-background "orange"
                               :style "align-content: right;" :slot :bandp
@@ -98,9 +98,9 @@
                     do (progn
                          (setf (value vsl) (aref (funcall accessor-fn global-orgel-ref) idx))
                          (setf (aref (funcall accessor-fn orgel) idx) vsl))))))
-;;        (setf vu2 (vumeter p1 :db-val -30 :led-colors :blue :direction :up))
-        ;;        (setf (attribute vu1 "db-val") -100)
-        ;;        (setf (attribute vu2 "db-val") 12)
+;;        (setf vu2 (vumeter p1 :data-db -30 :led-colors :blue :direction :up))
+        ;;        (setf (attribute vu1 "data-db") -100)
+        ;;        (setf (attribute vu2 "data-db") 12)
         ))
 
 
@@ -121,14 +121,16 @@
     ;; reduces rountrip traffic and speeds setup.
     (with-connection-cache (body)
       (let ((gui-container (create-div body :style "display: flex;")))
-        (dotimes (i *orgelcount*)
+        (dotimes (i 1)
           (let ((orgel (aref (orgel-gui-orgeln orgel-gui) i))
                 (global-orgel-ref (aref (orgel-gui-orgeln *curr-orgel-state*) i)))
             (create-orgel-gui i gui-container orgel global-orgel-ref)))))))
 
 (defparameter *my-vus* nil)
+(defparameter *tg1* nil)
 
-;;; (setf (attribute *my-vu* "db-val") 4)
+;;; (setf (attribute (elt *my-vus* 0) "data-db") -20)
+;;; (setf (attribute *tg1* "data-val") 1.0)
 
 ;;; (setf (width vu1))
     (defun start-orgel-gui ()

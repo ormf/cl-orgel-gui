@@ -223,7 +223,7 @@ UserSelect
                             (when class
                               (format nil " class='~A'"
                                       (escape-string class :html t)))
-                            (when (getf args :tg-val) (format nil "tg-val = ~a" (ensure-string (getf args :tg-val))))
+                            (when (getf args :data-val) (format nil "data-val = ~a" (ensure-string (getf args :data-val))))
                             (when (or hidden style)
                               (format nil " style='~@[~a~]~@[~a~]'"
                                       (when hidden "visibility:hidden;")
@@ -242,11 +242,11 @@ UserSelect
                            (selected-background "orange")
                            receiver-fn (toggle-content "")
                            slot)
-  (let ((btn (create-button container :class "toggle"
-                                      :style (format nil "~A width: ~A;height: ~Apx;font-size: ~Apt;color: ~A;background-color: ~A;"
+  (let ((btn (create-div container :class "toggle"
+                                   :style (format nil "~A width: ~A;height: ~Apx;font-size: ~Apt;color: ~A;background-color: ~A;"
                                                      style (* 5 size) (* 2 size) size color background)
-                                      :content content
-                                      :tg-val "0.0"))
+                                   :content content
+                                   :data-val "0.0"))
         (button-state nil))
     (let ((str (format nil "toggle(~A, { \"colorOff\": '~(~a~)', \"backgroundOff\": '~(~a~)', \"labelOff\": '~(~a~)', \"colorOn\": '~(~a~)', \"backgroundOn\": '~(~a~)', \"labelOn \": '~(~a~)'})"
                             (jquery btn)
@@ -262,13 +262,13 @@ UserSelect
              ;; (setf (style obj "color") color)
              ;; (setf (style obj "background-color") background)
              ;; (setf (text obj) content)
-             (setf (attribute obj "tg-val") 0.0)
+             (setf (attribute obj "data-val") 0.0)
              (setf button-state nil))
            (progn
              ;; (setf (style obj "color") selected-foreground)
              ;; (setf (style obj "background-color") selected-background)
              ;; (if toggle-content (setf (text obj) toggle-content))
-             (setf (attribute obj "tg-val") 1.0)
+             (setf (attribute obj "data-val") 1.0)
              (setf button-state t)))
        (if receiver-fn (let ((val (if button-state "1.0" "0.0")))
                          (funcall receiver-fn val obj)))))
@@ -301,21 +301,21 @@ UserSelect
                 &key style (width 10) (height 126) background
                   (direction :up) (border "thin solid black")
                   (vu-type :led) (input-mode :db) (display-map :pd) led-colors (bar-color "'rgba(60,60,255,1.0)'")
-                  (db-val -100) inner-padding inner-padding-bottom
+                  (data-db -100) inner-padding inner-padding-bottom
                 &allow-other-keys)
   (declare (ignorable style border)
            (type vu-direction direction)
            (type vu-type vu-type)
            (type vu-input-mode input-mode)
            (type vu-display-map display-map))
-  (dolist (key '(:type :input-mode :display-map :led-colors :db-val :style :inner-padding :inner-padding-bottom)) (remf args key))
+  (dolist (key '(:type :input-mode :display-map :led-colors :data-db :style :inner-padding :inner-padding-bottom)) (remf args key))
   (setf (getf args :direction) direction)
   (setf (getf args :border) border)
   (setf (getf args :width) (format nil "~a" (addpx (if (member direction '(:left :right)) height width))))
   (setf (getf args :height) (format nil "~a" (addpx (if (member direction '(:left :right)) width height))))
   (when background (setf (getf args :--vu-background) background))
 ;;;  (break (format nil "justify-content: center;~{~(~A~): \"~a\"~^; ~}" args))
-  (let ((vu-container (create-div container :class "vumeter" :style (format nil "justify-content: center;background-color: var(--vu-background);~{~(~A~): ~a; ~}~@[~a~]" args style) :db-val db-val)))
+  (let ((vu-container (create-div container :class "vumeter" :style (format nil "justify-content: center;background-color: var(--vu-background);~{~(~A~): ~a; ~}~@[~a~]" args style) :data-db data-db)))
     (js-execute vu-container (format nil "vumeter(~A, {\"boxCount\": 40, \"ledColors\": ~a, \"barColor\": ~a, \"vuType\": '~(~a~)', \"inputMode\": '~(~a~)', \"displayMap\": '~(~a~)', \"direction\": '~(~a~)', \"innerPadding\": '~(~a~)', \"innerPaddingBottom\": '~(~a~)'})"
                                   (jquery vu-container)
                                   (if led-colors (if (symbolp led-colors) (format nil "\"~(~a~)\"" led-colors) (cols->jsarray led-colors)) "false")
@@ -346,7 +346,7 @@ UserSelect
                                   :led-colors led-colors
                                   :direction direction
                                   :border inner-border
-                                  :db-val 0
+                                  :data-db 0
                                   :width "100%"
                                   :height "100%"
                                   :border-right-width (if (< n (1- num)) 0 1)

@@ -38,7 +38,7 @@
                          (background "white")
                          (selected-background "gray")
                          (selected-foreground "black"))
-  (let ((name (intern (format nil "~:@(nb-~a~)" slot)))
+  (let ((name (intern (format nil "~:@(tg-~a~)" slot)))
         (accessor (intern (format nil "~:@(orgel-~a~)" slot))))
     `(let* ((,name (toggle ,parent
                            :size ,size
@@ -51,7 +51,8 @@
                            :slot ,slot
                            :receiver-fn (make-orgel-attr-val-receiver :phase ,orgelidx ,global-orgel))))
        (setf (,accessor ,local-orgel) ,name)
-       (setf (attribute ,name "val") (,accessor ,global-orgel)))))
+       (setf (attribute ,name "data-val") (,accessor ,global-orgel))
+       ,name)))
 
 (defmacro init-numbox (slot parent orgelidx local-orgel global-orgel &key (size 10))
   (let ((name (intern (format nil "~:@(nb-~a~)" slot)))
