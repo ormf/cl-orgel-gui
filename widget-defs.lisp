@@ -251,13 +251,16 @@ UserSelect
     (let ((str (format nil "toggle(~A, { \"colorOff\": '~(~a~)', \"backgroundOff\": '~(~a~)', \"labelOff\": '~(~a~)', \"colorOn\": '~(~a~)', \"backgroundOn\": '~(~a~)', \"labelOn\": '~(~a~)'})"
                             (jquery btn) color background content selected-foreground selected-background toggle-content)))
       (js-execute btn str))
+    (format t "set-on-click: ~a~%" (attribute btn "id"))
     (set-on-click
      btn
      (lambda (obj)
-       (let ((new-val (if (equal (attribute obj "data-val") "1.0")
+       (declare (ignore obj))
+       (let ((new-val (if (equal (attribute btn "data-val") "1.0")
                            "0.0" "1.0")))
-         (setf (attribute obj "data-val") new-val)
-         (if receiver-fn (funcall receiver-fn new-val obj)))))
+         (setf (attribute btn "data-val") new-val)
+         (format t "clicked: ~a, ~a~%" (attribute btn "id") (attribute btn "data-val"))         
+         (if receiver-fn (funcall receiver-fn new-val btn)))))
 ;;     (set-on-mouse-down
 ;;      btn
 ;;      (lambda (obj event)

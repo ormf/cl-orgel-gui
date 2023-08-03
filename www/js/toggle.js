@@ -7,41 +7,32 @@ function toggle (elem, config) {
     var labelOff        = config.labelOff || 'Off';
 
     myToggle = elem.get(0);
-    console.log("toggle " + elem);
-    // override setAttribte
+//    console.log("toggle " + elem);
 
-    console.log("labelOn: " + config.labelOn);
-    console.log("labelOff: " + config.labelOff);
-    console.log("config: " + config);
-
-    console.log('myToggle: ' + myToggle);
-
+    // override setAttribute
     const mySetAttribute = myToggle.setAttribute;
     
-    console.log('myToggle.setAttribute: ' + myToggle.setAttribute);
+//    console.log('myToggle.setAttribute: ' + myToggle.setAttribute);
+    console.log('myToggle setAttribute: ' + myToggle.getAttribute('id'));
 
     myToggle.setAttribute = function (key, value) {
-        console.log("--trace, key: " + key + ', value: ' + value);
         // use call, to set the context and prevent illegal invocation errors
         mySetAttribute.call(myToggle, key, value);
-        // if (value == 1.0) { console.log("1.0!"); }
-        // if (value == 0.0) { console.log("0.0!"); }
-        if (key == 'data-val') drawToggle(value);
+//        console.log('ToggleID.setAttribute: ' + myToggle.getAttribute('id'));
+        if (key == 'data-val') drawToggle(myToggle, value);
     };
     
-    function drawToggle (val) {
-        console.log("draw: " + val);
+    function drawToggle (toggle, val) {
+        console.log('draw: ' + val + ', toggle: ' + toggle.getAttribute('id'));
         if (val == 1.0) {
-            console.log("labelOn: " + labelOn + ", colorOn: " + colorOn + ", backgroundOn: " + backgroundOn)
-            myToggle.textContent = labelOn;
-            myToggle.style.color = colorOn;
-            myToggle.style.background = backgroundOn;
+            toggle.textContent = labelOn;
+            toggle.style.color = colorOn;
+            toggle.style.background = backgroundOn;
         }
         else {
-            console.log("labelOff: " + labelOff + ", colorOff: " + colorOff + ", backgroundOff: " + backgroundOff)
-            myToggle.textContent = labelOff;
-            myToggle.style.color = colorOff;
-            myToggle.style.background = backgroundOff;
+            toggle.textContent = labelOff;
+            toggle.style.color = colorOff;
+            toggle.style.background = backgroundOff;
         }
     }
 }

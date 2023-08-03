@@ -59,11 +59,11 @@
          orgelidx orgel global-orgel-ref
          :size 6)
         (setf tg1-container (create-div nbs1 :style "display: flex;justify-content: right;")) ;;; container for right alignment of toggle
-        (setf *tg1* (init-toggle :phase tg1-container orgelidx orgel global-orgel-ref :content "phase" :toggle-content "inv" :size 6 :background "lightgreen" :selected-background "red" :selected-foreground "white"))
-        (setf tg2-container (create-div nbs2 :style "display: flex;justify-content: right;")) ;;; container for right alignment of toggle
-        (toggle tg2-container :content "bandp" :toggle-content "notch" :size 6 :background "lightgreen" :selected-background "orange"
-                              :style "align-content: right;" :slot :bandp
-                              :receiver-fn (make-orgel-attr-val-receiver :bandp orgelidx global-orgel-ref))
+        (setf (aref *tg1* orgelidx) (init-toggle :phase tg1-container orgelidx orgel global-orgel-ref :content "phase" :toggle-content "inv" :size 6 :background "lightgreen" :selected-background "red" :selected-foreground "white"))
+        ;; (setf tg2-container (create-div nbs2 :style "display: flex;justify-content: right;")) ;;; container for right alignment of toggle
+        ;; (toggle tg2-container :content "bandp" :toggle-content "notch" :size 6 :background "lightgreen" :selected-background "orange"
+        ;;                       :style "align-content: right;" :slot :bandp
+        ;;                       :receiver-fn (make-orgel-attr-val-receiver :bandp orgelidx global-orgel-ref))
 ;;;        (create-br p3)
         (setf *my-vus*
               (multi-vu p3 :num 16 :width 160 :height 80 :led-colors :blue :direction :up :background "#444"
@@ -133,10 +133,13 @@
             ))))))
 
 (defparameter *my-vus* nil)
-(defparameter *tg1* nil)
+(defparameter *tg1* (make-array 10 :initial-element nil))
 
 ;;; (setf (attribute (elt *my-vus* 0) "data-db") -20)
-;;; (setf (attribute *tg1* "data-val") 1.0)
+;;; (setf (attribute (aref *tg1* 0) "data-val") 0.0)
+;;; (setf (attribute (aref *tg1* 0) "data-val") 1.0)
+;;; (setf (attribute (aref *tg1* 1) "data-val") 0.0)
+;;; (setf (attribute (aref *tg1* 1) "data-val") 1.0)
 
 ;;; (setf (width vu1))
     (defun start-orgel-gui ()
