@@ -116,7 +116,8 @@ function vumeter(elem, config){
     // Main draw function
     var drawLed = function() {
         var targetDB = 100+parseInt(vuMeter.getAttribute("data-db"), 10)
-//        console.log('redraw!' + vuMeter.getAttribute("data-db") + ', dB: ' + targetDB);
+
+        //        console.log('redraw!' + vuMeter.getAttribute("data-db") + ', dB: ' + targetDB);
         if (targetDB > 112)
             targetDB=112;
         else { if (targetVal < 0) tarvetVal = 0; }

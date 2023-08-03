@@ -6,7 +6,7 @@ function toggle (elem, config) {
     var labelOn         = config.labelOn || 'On';
     var labelOff        = config.labelOff || 'Off';
 
-    myToggle = elem.get(0);
+    var myToggle = elem.get(0);
 //    console.log("toggle " + elem);
 
     // override setAttribute
@@ -16,13 +16,24 @@ function toggle (elem, config) {
     console.log('myToggle setAttribute: ' + myToggle.getAttribute('id'));
 
     myToggle.setAttribute = function (key, value) {
+        console.log("--trace, key: " + key + ', value: ' + value);
+        console.log('myToggle setAttribute: ' + myToggle.getAttribute('id'));
         // use call, to set the context and prevent illegal invocation errors
         mySetAttribute.call(myToggle, key, value);
-//        console.log('ToggleID.setAttribute: ' + myToggle.getAttribute('id'));
+        //        if (key == 'data-db') drawBoxes(c, value);
         if (key == 'data-val') drawToggle(myToggle, value);
-    };
+
+    }
+
     
-    function drawToggle (toggle, val) {
+//     myToggle.setAttribute = function (key, value) {
+//         // use call, to set the context and prevent illegal invocation errors
+//         mySetAttribute.call(myToggle, key, value);
+// //        console.log('ToggleID.setAttribute: ' + myToggle.getAttribute('id'));
+//         if (key == 'data-val') drawToggle(myToggle, value);
+//     };
+    
+    var  drawToggle = function (toggle, val) {
         console.log('draw: ' + val + ', toggle: ' + toggle.getAttribute('id'));
         if (val == 1.0) {
             toggle.textContent = labelOn;
