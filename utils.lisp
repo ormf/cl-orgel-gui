@@ -133,7 +133,7 @@ orgel1 orgel2
                    (let* ((orgel-gui (gethash "orgel-gui" connection-hash)))
                      (when orgel-gui (let ((elem (slot-value (aref (orgel-gui-orgeln orgel-gui) orgelidx) slot-symbol)))
 ;;;                                       (break "self: ~a~% elem: ~a" self elem)
-                                       (unless (equal self elem) (setf (attribute elem "val") val-string))))))
+                                       (unless (equal self elem) (setf (attribute elem "data-val") val-string))))))
                  clog-connection::*connection-data*)))))
 
 (defun make-orgel-val-receiver (slot orgelidx global-orgel-ref)

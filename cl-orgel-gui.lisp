@@ -121,10 +121,16 @@
     ;; reduces rountrip traffic and speeds setup.
     (with-connection-cache (body)
       (let ((gui-container (create-div body :style "display: flex;")))
-        (dotimes (i 1)
+        
+
+        (dotimes (i 2)
           (let ((orgel (aref (orgel-gui-orgeln orgel-gui) i))
                 (global-orgel-ref (aref (orgel-gui-orgeln *curr-orgel-state*) i)))
-            (create-orgel-gui i gui-container orgel global-orgel-ref)))))))
+            (create-orgel-gui i gui-container orgel global-orgel-ref)
+            
+;;;            (setf *tg1* (init-toggle :phase gui-container 0 orgel global-orgel-ref :content "phase" :toggle-content "inv" :size 6 :background "lightgreen" :selected-background "red" :selected-foreground "white"))
+            
+            ))))))
 
 (defparameter *my-vus* nil)
 (defparameter *tg1* nil)

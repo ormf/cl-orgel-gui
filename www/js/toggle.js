@@ -1,7 +1,7 @@
 function toggle (elem, config) {
     var colorOff        = config.colorOff || "black";
     var backgroundOff   = config.backgroundOff || "white";
-    var colorOn         = config.colorOff || "black";
+    var colorOn         = config.colorOn || "black";
     var backgroundOn    = config.backgroundOn || 'rgba(120,120,120,1.0)';
     var labelOn         = config.labelOn || 'On';
     var labelOff        = config.labelOff || 'Off';
@@ -10,6 +10,9 @@ function toggle (elem, config) {
     console.log("toggle " + elem);
     // override setAttribte
 
+    console.log("labelOn: " + config.labelOn);
+    console.log("labelOff: " + config.labelOff);
+    console.log("config: " + config);
 
     console.log('myToggle: ' + myToggle);
 
@@ -21,29 +24,24 @@ function toggle (elem, config) {
         console.log("--trace, key: " + key + ', value: ' + value);
         // use call, to set the context and prevent illegal invocation errors
         mySetAttribute.call(myToggle, key, value);
-        if (value == 1.0) { console.log("1.0!"); }
-        if (value == 0.0) { console.log("0.0!"); }
-        if (key == 'tg-val') drawToggle(value);
+        // if (value == 1.0) { console.log("1.0!"); }
+        // if (value == 0.0) { console.log("0.0!"); }
+        if (key == 'data-val') drawToggle(value);
     };
-
-    console.log('myToggle.setAttribute (after): ' + myToggle.setAttribute);
-
-    console.log('mySetAttribute: ' + mySetAttribute);
-
     
     function drawToggle (val) {
         console.log("draw: " + val);
         if (val == 1.0) {
-            console.log("on");
-            myToggle.innerHtml = labelOn;
-            myToggle.color = colorOn;
-            myToggle.background = backgroundOn;
+            console.log("labelOn: " + labelOn + ", colorOn: " + colorOn + ", backgroundOn: " + backgroundOn)
+            myToggle.textContent = labelOn;
+            myToggle.style.color = colorOn;
+            myToggle.style.background = backgroundOn;
         }
         else {
-            console.log("off")
-            myToggle.innerHtml = labelOff;
-            myToggle.color = colorOff;
-            myToggle.background = backgroundOff;
+            console.log("labelOff: " + labelOff + ", colorOff: " + colorOff + ", backgroundOff: " + backgroundOff)
+            myToggle.textContent = labelOff;
+            myToggle.style.color = colorOff;
+            myToggle.style.background = backgroundOff;
         }
     }
 }
