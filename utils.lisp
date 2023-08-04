@@ -23,13 +23,6 @@
 (defun ensure-string (token)
   (if (stringp token) token (format nil "~S" token)))
 
-
-#|
-
- ;
-
-|#
-
 (defmacro init-toggle (slot parent orgelidx local-orgel global-orgel
                        &key (size 10)
                          (content "")
@@ -49,7 +42,7 @@
                            :selected-background ,selected-background
                            :selected-foreground ,selected-foreground
                            :slot ,slot
-                           :receiver-fn (make-orgel-attr-val-receiver :phase ,orgelidx ,global-orgel))))
+                           :receiver-fn (make-orgel-attr-val-receiver ,slot ,orgelidx ,global-orgel))))
        (setf (,accessor ,local-orgel) ,name)
        (setf (attribute ,name "data-val") (,accessor ,global-orgel))
        ,name)))

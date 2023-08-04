@@ -61,10 +61,7 @@
         (setf tg1-container (create-div nbs1 :style "display: flex;justify-content: right;")) ;;; container for right alignment of toggle
         (setf (aref *tg1* orgelidx) (init-toggle :phase tg1-container orgelidx orgel global-orgel-ref :content "phase" :toggle-content "inv" :size 6 :background "lightgreen" :selected-background "red" :selected-foreground "white"))
         (setf tg2-container (create-div nbs2 :style "display: flex;justify-content: right;")) ;;; container for right alignment of toggle
-        (toggle tg2-container :content "bandp" :toggle-content "notch" :size 6 :background "lightgreen" :selected-background "orange"
-                              :style "align-content: right;" :slot :bandp
-                              :receiver-fn (make-orgel-attr-val-receiver :bandp orgelidx global-orgel-ref))
-       (create-br p3)
+        (init-toggle :bandp tg2-container orgelidx orgel global-orgel-ref :content "bandp" :toggle-content "notch" :size 6 :background "lightgreen" :selected-background "orange" :selected-foreground "black")
         (setf *my-vus*
               (multi-vu p3 :num 16 :width 160 :height 80 :led-colors :blue :direction :up :background "#444"
                            :inner-background "#444"
