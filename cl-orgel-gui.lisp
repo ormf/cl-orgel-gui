@@ -59,7 +59,7 @@
          orgelidx orgel global-orgel-ref
          :size 6)
         (setf tg1-container (create-div nbs1 :style "display: flex;justify-content: right;")) ;;; container for right alignment of toggle
-        (setf (aref *tg1* orgelidx) (init-toggle :phase tg1-container orgelidx orgel global-orgel-ref :content "phase" :toggle-content "inv" :size 6 :background "lightgreen" :selected-background "red" :selected-foreground "white"))
+        (init-toggle :phase tg1-container orgelidx orgel global-orgel-ref :content "phase" :toggle-content "inv" :size 6 :background "lightgreen" :selected-background "red" :selected-foreground "white")
         (setf tg2-container (create-div nbs2 :style "display: flex;justify-content: right;")) ;;; container for right alignment of toggle
         (init-toggle :bandp tg2-container orgelidx orgel global-orgel-ref :content "bandp" :toggle-content "notch" :size 6 :background "lightgreen" :selected-background "orange" :selected-foreground "black")
         (setf *my-vus*
@@ -69,9 +69,7 @@
                            :inner-padding "0"
                            :style "margin-bottom: 10px;"))
         ;;; main volume slider
-        (vslider p4 :style "width: 10px;height: 100% ;--slider-thumb-height: 2px;--slider-thumb-width: 100%;flex: 0 0 auto;"
-                    :thumbcolor "orange" :color "#444" :background "#444")
-
+        (init-vslider :main-volume p4 orgelidx orgel global-orgel-ref)
         (create-div p1 :height 10) ;;; distance
         (setf vsliders (create-slider-panel p1 :label "Level" :receiver-fn (make-orgel-array-receiver :level-sliders orgelidx global-orgel-ref)))
         (loop for vsl in vsliders
@@ -150,3 +148,4 @@
 
 ;;; (create-context2d disp)
 
+;;; *curr-orgel-state*

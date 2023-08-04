@@ -47,6 +47,43 @@
        (setf (attribute ,name "data-val") (,accessor ,global-orgel))
        ,name)))
 
+(defmacro init-vslider (slot parent orgelidx local-orgel global-orgel
+                        &key (size 10)
+                          (color "#444")
+                          (background "#444")
+                          (thumbcolor "orange"))
+  (let ((name (intern (format nil "~:@(tg-~a~)" slot)))
+        (accessor (intern (format nil "~:@(orgel-~a~)" slot))))
+    `(let* ((,name (vslider ,parent
+                            :style (format nil "width: ~apx;height: 100% ;--slider-thumb-height: 2px;--slider-thumb-width: 100%;flex: 0 0 auto;" ,size)
+                            :thumbcolor ,thumbcolor
+                            :color ,color
+                            :background ,background
+                            :receiver-fn (make-orgel-val-receiver ,slot ,orgelidx ,global-orgel))))
+       (setf (,accessor ,local-orgel) ,name)
+       (setf (value ,name) (,accessor ,global-orgel))
+       ,name)))
+
+(defmacro init-hslider (slot parent orgelidx local-orgel global-orgel
+                        &key ;;;(size 10)
+                          (width 100)
+                          (height 10)
+                          (color "#444")
+                          (background "#444")
+                          (thumbcolor "orange"))
+  (let ((name (intern (format nil "~:@(tg-~a~)" slot)))
+        (accessor (intern (format nil "~:@(orgel-~a~)" slot))))
+    `(let* ((,name (hslider ,parent
+                            :thumbcolor ,thumbcolor
+                            :color ,color
+                            :background ,background
+                            :width ,width
+                            :height ,height
+                            :receiver-fn (make-orgel-val-receiver ,slot ,orgelidx ,global-orgel))))
+       (setf (,accessor ,local-orgel) ,name)
+       (setf (value ,name) (,accessor ,global-orgel))
+       ,name)))
+
 (defmacro init-numbox (slot parent orgelidx local-orgel global-orgel &key (size 10))
   (let ((name (intern (format nil "~:@(nb-~a~)" slot)))
         (accessor (intern (format nil "~:@(orgel-~a~)" slot)))
