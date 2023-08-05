@@ -37,12 +37,10 @@ button {
 }
 
 button:active{
-    background-color: green;
+    background-color: orange;
 }
 
-.btn:active {
-    background: #444;
-}
+
 
 input[type=text] {
     /* color: var(--textbox-selected-foreground); */

@@ -49,23 +49,29 @@
                 :html-id    html-id
                 :auto-place auto-place))
 
+;;; (init-nb-button a b #'1+)
+
 (defun create-preset-panel (container vu-container)
   (let ((preset-panel
           (create-div container :height 80
                          :style "border: thin solid black;position: absolute;top: 0;left: 0;display: none;justify-content: space-between;width: 100%;")))
 
     (create-div preset-panel :content "Presets" :style "margin: 2px;")
-    (let* ((prv (create-button preset-panel :class "btn" :content "prev" :style "font-size: 8px;background: #bbb;"))
+    (let* ((prv (init-button preset-panel :content "prev" :active-bg "orange"
+                                          :background "#bbb" :style "font-size: 8px;"))
            (nb (numbox preset-panel :size 6 :min 0 :max 127))
-           (nxt (create-button preset-panel :class "btn" :content "next" :style "font-size: 8px;background: #bbb;")))
+           (nxt (init-button preset-panel :content "next" :active-bg "orange"
+                                          :background "#bbb" :style "font-size: 8px;"))
+)
       (set-on-click
        prv
        (lambda (obj)
          (declare (ignore obj))
-;;;                   (format t "prv clicked!~%")
          (let ((curr (read-from-string (value nb))))
            (when (> curr (read-from-string (attribute nb "min")))
-             (setf (value nb) (1- curr))))))
+             (setf (value nb) (1- curr))))
+;;;                   (format t "next clicked!~%")
+         ))
       (set-on-click
        nxt
        (lambda (obj)
@@ -76,14 +82,20 @@
 ;;;                   (format t "next clicked!~%")
          ))
       (create-br preset-panel)
-      (let ((recall-btn (create-button preset-panel :class "btn" :content "recall" :style "font-size: 8px;background: #d5ffd5;"))
-            (store-btn (create-button preset-panel :class "btn" :content "store" :style "font-size: 8px;background: #ffd5d5;"))
+      (let ((recall-btn
+              (init-button preset-panel :content "recall" :active-bg "orange"
+                                        :background "#d5ffd5" :style "font-size: 8px;"))
+            (store-btn
+              (init-button preset-panel :content "store" :active-bg "orange"
+                                        :background "#ffd5d5" :style "font-size: 8px;"))
             load-btn
             save-btn
             )
         (create-br preset-panel)
-        (setf load-btn (create-button preset-panel :class "btn" :content "load"  :style "font-size: 8px;background: #d5ffd5;"))
-        (setf save-btn (create-button preset-panel :class "btn" :content "save"  :style "font-size: 8px;background: #ffd5d5;"))
+        (setf load-btn (init-button preset-panel :content "load" :active-bg "orange"
+                                        :background "#d5ffd5" :style "font-size: 8px;"))
+        (setf save-btn (init-button preset-panel :content "save" :active-bg "orange"
+                                                 :background "#ffd5d5" :style "font-size: 8px;"))
         (set-on-click
          recall-btn
          (lambda (obj)
@@ -174,6 +186,8 @@
         ;;        (setf (attribute vu2 "data-db") 12)
         ))
 
+
+
 (defun on-new-window (body)
   (let ((orgel-gui (make-orgel-gui))
         connection-id)
@@ -194,11 +208,8 @@
         (dotimes (i 10)
           (let ((orgel (aref (orgel-gui-orgeln orgel-gui) i))
                 (global-orgel-ref (aref (orgel-gui-orgeln *curr-orgel-state*) i)))
-            (create-orgel-gui i gui-container orgel global-orgel-ref)
-            
-;;;            (setf *tg1* (init-toggle :phase gui-container 0 orgel global-orgel-ref :content "phase" :toggle-content "inv" :size 6 :background "lightgreen" :selected-background "red" :selected-foreground "white"))
-            
-            ))))))
+            (create-orgel-gui i gui-container orgel global-orgel-ref)))))))
+
 
 
 
@@ -224,31 +235,4 @@
 ;;; (create-context2d disp)
 
 ;;; *curr-orgel-state*
-(setf (attribute *my-vus* "hidden") t)
 
-(setf (style *my-vus* :display) "flex")
-
-(progn
-  (setf (style *my-vus* :display) "none")
-  (setf (style *preset-panel* :display) "block"))
-
-
-
-*preset-panel*
-
-(progn
-  (setf (style *my-vus* :display) "flex")
-  (setf (style *preset-panel* :display) "none"))
-
-
-(remove-attribute *my-vus* "hidden")
-112 und 113
-
-(js-execute container
-                          "document.onkeyup = function (event) {
-  if (event.which == 112 || event.keyCode == 112) {
-  }
-  if (event.which == 113 || event.keyCode == 113) {
-  }
-};
-")

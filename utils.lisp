@@ -85,6 +85,22 @@
        (setf (,accessor ,local-orgel) ,name)
        (setf (value ,name) (,accessor ,global-orgel))
        ,name)))
+(defmacro init-button (container &key (content "") style (background "#fff") (active-bg "#444"))
+  (let ((btn (gensym "btn")))
+    `(let ((,btn
+             (create-button ,container :content ,content :style ,(format nil "style = ~@[~A;~]background: ~A;" style background))))
+       (set-on-mouse-down
+        ,btn
+        (lambda (obj evt)
+          (declare (ignore obj evt))
+          (setf (style ,btn "background") ,active-bg)))
+       (set-on-mouse-up
+        ,btn
+        (lambda (obj evt)
+          (declare (ignore obj evt))
+;;;                   (format t "prv clicked!~%")
+          (setf (style ,btn "background") ,background)))
+       ,btn)))
 
 (defmacro init-numbox (slot parent orgelidx local-orgel global-orgel &key (size 10))
   (let ((name (intern (format nil "~:@(nb-~a~)" slot)))
