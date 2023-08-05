@@ -49,6 +49,68 @@
                 :html-id    html-id
                 :auto-place auto-place))
 
+(defun create-preset-panel (container vu-container)
+  (let ((preset-panel
+          (create-div container :height 80
+                         :style "border: thin solid black;position: absolute;top: 0;left: 0;display: none;justify-content: space-between;width: 100%;")))
+
+    (create-div preset-panel :content "Presets" :style "margin: 2px;")
+    (let* ((prv (create-button preset-panel :class "btn" :content "prev" :style "font-size: 8px;background: #bbb;"))
+           (nb (numbox preset-panel :size 6 :min 0 :max 127))
+           (nxt (create-button preset-panel :class "btn" :content "next" :style "font-size: 8px;background: #bbb;")))
+      (set-on-click
+       prv
+       (lambda (obj)
+         (declare (ignore obj))
+;;;                   (format t "prv clicked!~%")
+         (let ((curr (read-from-string (value nb))))
+           (when (> curr (read-from-string (attribute nb "min")))
+             (setf (value nb) (1- curr))))))
+      (set-on-click
+       nxt
+       (lambda (obj)
+         (declare (ignore obj))
+         (let ((curr (read-from-string (value nb))))
+           (when (< curr (read-from-string (attribute nb "max")))
+             (setf (value nb) (1+ curr))))
+;;;                   (format t "next clicked!~%")
+         ))
+      (create-br preset-panel)
+      (let ((recall-btn (create-button preset-panel :class "btn" :content "recall" :style "font-size: 8px;background: #d5ffd5;"))
+            (store-btn (create-button preset-panel :class "btn" :content "store" :style "font-size: 8px;background: #ffd5d5;"))
+            load-btn
+            save-btn
+            )
+        (create-br preset-panel)
+        (setf load-btn (create-button preset-panel :class "btn" :content "load"  :style "font-size: 8px;background: #d5ffd5;"))
+        (setf save-btn (create-button preset-panel :class "btn" :content "save"  :style "font-size: 8px;background: #ffd5d5;"))
+        (set-on-click
+         recall-btn
+         (lambda (obj)
+           (declare (ignore obj))
+           (format t "recall preset ~d!~%" (read-from-string (value nb)))))
+        (set-on-click
+         store-btn
+         (lambda (obj)
+           (declare (ignore obj))
+           (format t "store preset ~d!~%" (read-from-string (value nb)))))
+        (set-on-click
+         load-btn
+         (lambda (obj)
+           (declare (ignore obj))
+           (format t "load presets!~%")))
+        (set-on-click
+         save-btn
+         (lambda (obj)
+           (declare (ignore obj))
+           (format t "save presets!~%")))
+        
+        (install-preset-key-switch container (html-id vu-container) (html-id preset-panel))))
+    ;; (set-on-key-up container
+    ;;                (lambda (obj event) (declare (ignore obj))
+    ;;                  (format t "keyup!~%")))
+    ))
+
 (defun create-orgel-gui (orgelidx container orgel global-orgel-ref)
       (let* (p1 p2 p3 p4 p5 p6 p7 nbs1 nbs2 tg1-container tg2-container vsliders)
         (create-br container)
@@ -76,43 +138,7 @@
                                                           :style "margin-bottom: 10px;position: absolute;top: 0;left: 0;")
           (declare (ignore vus))
           (when (zerop orgelidx)
-            (let ((preset-panel
-                    (create-div p7 :height 80
-                                   :style "border: thin solid black;position: absolute;top: 0;left: 0;display: none;justify-content: space-between;width: 100%;")))
-
-              (create-div preset-panel :content "Presets" :style "margin: 2px;")
-              (let* ((prv (create-button preset-panel :class "btn" :content "prev" :style "font-size: 8px;background: #bbb;"))
-                     (nb (numbox preset-panel :size 6 :min 0 :max 127))
-                     (nxt (create-button preset-panel :class "btn" :content "next" :style "font-size: 8px;background: #bbb;")))
-                (set-on-click
-                 prv
-                 (lambda (obj)
-                   (declare (ignore obj))
-;;;                   (format t "prv clicked!~%")
-                   (let ((curr (read-from-string (value nb))))
-                     (when (> curr (read-from-string (attribute nb "min")))
-                       (setf (value nb) (1- curr))))))
-                (set-on-click
-                 nxt
-                 (lambda (obj)
-                   (declare (ignore obj))
-                   (let ((curr (read-from-string (value nb))))
-                     (when (< curr (read-from-string (attribute nb "max")))
-                       (setf (value nb) (1+ curr))))
-;;;                   (format t "next clicked!~%")
-                   )))
-              (create-br preset-panel)
-              (create-button preset-panel :class "btn" :content "recall" :style "font-size: 8px;background: #d5ffd5;")
-              (create-button preset-panel :class "btn" :content "store" :style "font-size: 8px;background: #ffd5d5;")
-              (create-br preset-panel)
-              (create-button preset-panel :class "btn" :content "load"  :style "font-size: 8px;background: #d5ffd5;")
-              (create-button preset-panel :class "btn" :content "save"  :style "font-size: 8px;background: #ffd5d5;")
-              (setf *my-vus* vu-container)
-              (setf *preset-panel* preset-panel)
-              (install-preset-key-switch container (html-id vu-container) (html-id preset-panel))
-              (set-on-key-up container
-                             (lambda (obj event) (declare (ignore obj))
-                               (format t "keyup!~%"))))))
+            (create-preset-panel p7 vu-container)))
         ;;; main volume slider
         (init-vslider :main-volume p4 orgelidx orgel global-orgel-ref)
         (create-div p1 :height 10) ;;; distance
