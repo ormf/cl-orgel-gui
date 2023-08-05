@@ -64,6 +64,8 @@
        (setf (value ,name) (,accessor ,global-orgel))
        ,name)))
 
+
+
 (defmacro init-hslider (slot parent orgelidx local-orgel global-orgel
                         &key ;;;(size 10)
                           (width 100)
@@ -240,3 +242,18 @@ orgel1 orgel2
                     (aref (orgel-gui-orgeln orgelgui) orgelidx)))
           faderidx)))
 |#
+
+(defun install-preset-key-switch (container vu-id preset-panel-id)
+  (js-execute
+   container
+   (format nil "document.onkeyup = function (event) {
+  if (event.which == 112 || event.keyCode == 112) {
+   document.getElementById('~a').style.display = \"flex\";
+   document.getElementById('~a').style.display = \"none\";
+  }
+  if (event.which == 113 || event.keyCode == 113) {
+   document.getElementById('~a').style.display = \"none\";
+   document.getElementById('~a').style.display = \"block\";
+  }
+};
+" vu-id preset-panel-id vu-id preset-panel-id)))

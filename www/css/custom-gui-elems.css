@@ -22,6 +22,28 @@ body {
 /*     background-color: var(--textbox-selected-background); */
 /* } */
 
+button {
+    border-radius: 0px;
+    border: thin solid black;
+    margin: 2px;
+  background-color: #fff; /* Green */
+  /* border: none; */
+  color: black;
+  padding: 0px 2px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 8px;
+}
+
+button:active{
+    background-color: green;
+}
+
+.btn:active {
+    background: #444;
+}
+
 input[type=text] {
     /* color: var(--textbox-selected-foreground); */
     /* background-color: var(--textbox-selected-background); */

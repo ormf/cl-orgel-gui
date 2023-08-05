@@ -13,11 +13,11 @@ function toggle (elem, config) {
     const mySetAttribute = myToggle.setAttribute;
     
 //    console.log('myToggle.setAttribute: ' + myToggle.setAttribute);
-    console.log('myToggle setAttribute: ' + myToggle.getAttribute('id'));
+//    console.log('myToggle setAttribute: ' + myToggle.getAttribute('id'));
 
     myToggle.setAttribute = function (key, value) {
-        console.log("--trace, key: " + key + ', value: ' + value);
-        console.log('myToggle setAttribute: ' + myToggle.getAttribute('id'));
+//        console.log("--trace, key: " + key + ', value: ' + value);
+//        console.log('myToggle setAttribute: ' + myToggle.getAttribute('id'));
         // use call, to set the context and prevent illegal invocation errors
         mySetAttribute.call(myToggle, key, value);
         //        if (key == 'data-db') drawBoxes(c, value);
@@ -34,7 +34,7 @@ function toggle (elem, config) {
 //     };
     
     var  drawToggle = function (toggle, val) {
-        console.log('draw: ' + val + ', toggle: ' + toggle.getAttribute('id'));
+//        console.log('draw: ' + val + ', toggle: ' + toggle.getAttribute('id'));
         if (val == 1.0) {
             toggle.textContent = labelOn;
             toggle.style.color = colorOn;

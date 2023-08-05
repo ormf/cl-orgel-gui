@@ -86,9 +86,10 @@ UserSelect
     vsl))
 |#
 
+
 (defun hslider
     (container &key (value 0.0) (min 0.0) (max 100.0) (thumbcolor "black") (color "#3071A9")
-                 (border-right-width 1) (background-color "#fff") width height
+                 (border-right-width 1) (background "#fff") width height
                  receiver-fn)
     "horizontal slider including behaviour."
   (let ((hsl
@@ -99,7 +100,7 @@ UserSelect
 --slider-thumb: ~A;--slider-color: ~A;
 --slider-background: ~A;min-width: 0;flex: 1 1 0;--slider-thumb-height: 100%;
 --slider-thumb-width: 2px;height: ~A;~@[width: ~A;~]"
-                          border-right-width thumbcolor color background-color
+                          border-right-width thumbcolor color background
                           (or height "10px") width)
            :value (format nil "~a" value)
            :min (format nil "~a" min)
@@ -143,6 +144,8 @@ UserSelect
                            (background-color "#fff")
                            (selected-foreground "black")
                            (selected-background "lightblue")
+                           (min 0)
+                           (max 127)
                            (value 0)
                            (size 10)
                            label
@@ -157,6 +160,8 @@ UserSelect
            :style (format nil ";--text-color: ~A;align: center;background-color: ~A:--textbox-selected-foreground: ~A;--textbox-selected-background: ~A;font-size: ~Apt;width: ~Apx;height: ~Apx;"
                           color background-color selected-foreground selected-background size
                           (* size 5) (* size 2))
+           :min min
+           :max max
            :label (if label (create-label container :content (ensure-string label) :style (or label-style "margin-right: 0px;")))))
         mouse-dragged
         startvalue)
@@ -182,7 +187,7 @@ UserSelect
                   (setf mouse-dragged t)
                   (let ((val-string (format nil "~,1f" val)))
                     (setf (value elem) val-string)
-                    (funcall receiver-fn val-string elem))
+                    (if receiver-fn (funcall receiver-fn val-string elem)))
                   (setf last-y y last-val val)))))))))
     (set-on-key-up
      elem
@@ -193,7 +198,7 @@ UserSelect
            (unless (numberp (read-from-string val))
              (setf val (format nil "~,1f" startvalue)))
            (setf (value elem) val)
-           (funcall receiver-fn val elem))
+           (if receiver-fn (funcall receiver-fn val elem)))
          (blur elem))))
     (set-on-mouse-up
      elem
