@@ -245,6 +245,8 @@ UserSelect
                            (background "white")
                            (selected-foreground "black")
                            (selected-background "orange")
+                           (value-off "0.0")
+                           (value-on "1.0")
                            receiver-fn (toggle-content "")
                            slot)
   (declare (ignore slot))
@@ -253,15 +255,15 @@ UserSelect
                                                      style (* 5 size) (* 2 size) size color background)
                                    :content content
                                    :data-val "0.0")))
-    (let ((str (format nil "toggle(~A, { \"colorOff\": '~(~a~)', \"backgroundOff\": '~(~a~)', \"labelOff\": '~(~a~)', \"colorOn\": '~(~a~)', \"backgroundOn\": '~(~a~)', \"labelOn\": '~(~a~)'})"
-                            (jquery btn) color background content selected-foreground selected-background toggle-content)))
+    (let ((str (format nil "toggle(~A, { \"colorOff\": '~(~a~)', \"backgroundOff\": '~(~a~)', \"labelOff\": '~(~a~)', \"valueOff\": '~(~a~)', \"colorOn\": '~(~a~)', \"backgroundOn\": '~(~a~)', \"labelOn\": '~(~a~)', \"valueOn\": '~(~a~)'})"
+                            (jquery btn) color background content value-off selected-foreground selected-background toggle-content value-on)))
       (js-execute btn str))
     (set-on-click
      btn
      (lambda (obj)
        (declare (ignore obj))
-       (let ((new-val (if (equal (attribute btn "data-val") "1.0")
-                           "0.0" "1.0")))
+       (let ((new-val (if (equal (attribute btn "data-val") value-on)
+                           value-off value-on)))
          (setf (attribute btn "data-val") new-val)         
          (if receiver-fn (funcall receiver-fn new-val btn)))))
 ;;     (set-on-mouse-down

@@ -29,23 +29,23 @@
   (base-freq "0.0")
   (min-amp "0.0")
   (max-amp "1.0")
-  (phase "0.0")
-  (bandp "0.0")
-  (level-sliders (make-array 16))
-  (delay-sliders (make-array 16))
-  (bp-sliders (make-array 16))
-  (gain-sliders (make-array 16))
-  (osc-level-sliders (make-array 16))
+  (phase "1.0")
+  (bias-type "0.0")
+  (level (make-array 16))
+  (delay (make-array 16))
+  (q (make-array 16))
+  (gain (make-array 16))
+  (osc-level (make-array 16))
   (meters (make-array 10))
-  (main-volume "0.0")
-  (bw "0.0")
-  (bias "0.0"))
+  (main "0.0")
+  (bias-bw "0.0")
+  (bias-pos "0.0"))
 
 (defstruct gui-presets
   (num "0.0"))
 
 (defstruct orgel-gui
-  (orgeln (make-array *orgelcount* :element-type 'orgel
+  (orgeln (make-array *orgelcount*
                      :initial-contents (v-collect (n *orgelcount*) (make-orgel))))
   (presets (make-gui-presets)))
 

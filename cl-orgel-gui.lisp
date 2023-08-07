@@ -109,7 +109,7 @@
         (install-preset-key-switch container (html-id vu-container) (html-id preset-panel))))))
 
 (defun create-orgel-gui (orgelidx container orgel global-orgel-ref)
-      (let* (p1 p2 p3 p4 p5 p6 p7 nbs1 nbs2 tg1-container tg2-container vsliders)
+      (let* (p1 p2 p3 p4 p5 p7 nbs1 nbs2 tg1-container tg2-container vsliders)
         (create-br container)
         (setf p1  (create-div container :style "margin-left: 10px;"))
         (create-div p1 :content (format nil "Orgel~2,'0d" (1+ orgelidx)) :style "align: bottom; padding-bottom: 10px;")
@@ -126,42 +126,46 @@
         (setf tg1-container (create-div nbs1 :style "display: flex;justify-content: right;")) ;;; container for right alignment of toggle
         (init-toggle :phase tg1-container orgelidx orgel global-orgel-ref
                      :content "phase" :toggle-content "inv" :size 6 :background "lightgreen"
-                     :selected-background "red" :selected-foreground "white")
+                     :value-on "-1.0" :value-off "1.0" :selected-background "red" :selected-foreground "white")
         (setf tg2-container (create-div nbs2 :style "display: flex;justify-content: right;")) ;;; container for right alignment of toggle
-        (init-toggle :bandp tg2-container orgelidx orgel global-orgel-ref
+        (init-toggle :bias-type tg2-container orgelidx orgel global-orgel-ref
                      :content "bandp" :toggle-content "notch" :size 6 :background "lightgreen"
                      :selected-background "orange" :selected-foreground "black")
         (setf p7 (create-div p3 :style "position: relative;" :height 80 :width 160))
-        (multiple-value-bind (vus vu-container) (multi-vu p7 :num 16 :width 160 :height 80 :led-colors :blue
-                                                             :direction :up :background "#444"
-                                                             :inner-background "#444"
-                                                             :border "none" :inner-border "thin solid black"
-                                                             :inner-padding-bottom "0px"
-                                                             :inner-padding "0"
-                                                             :style "margin-bottom: 10px;position: absolute;top: 0;left: 0;")
+        (multiple-value-bind (vus vu-container)
+            (init-multi-vu :meters p7 orgelidx orgel global-orgel-ref
+                           :num 16 :width 160 :height 80
+                           :led-colors :blue
+                           :direction :up :background "#444"
+                           :inner-background "#444"
+                           :border "none" :inner-border "thin solid black"
+                           :inner-padding-bottom "0px"
+                           :inner-padding "0"
+                           :style "margin-bottom: 10px;position: absolute;top: 0;left: 0;"
+                           :receiver-fn nil)
           (declare (ignore vus))
           (when (zerop orgelidx)
             (create-preset-panel p7 vu-container)))
         ;;; main volume slider
-        (init-vslider :main-volume p4 orgelidx orgel global-orgel-ref)
+        (init-vslider :main p4 orgelidx orgel global-orgel-ref)
         (create-div p1 :height 10) ;;; distance
         (create-div p1 :content "Level" :style *msl-title-style*)
         (setf p5 (create-div p1 :width 180 :height 100 :style "padding-bottom: 5px;display: flex;justify-content: space-between;flex: 0 0 auto;"))
 ;;;        (setf p6 (create-div p5 :style "display: block;"))
 
         (setf vsliders
-              (apply #'multi-vslider p5 :receiver-fn (make-orgel-array-receiver :level-sliders orgelidx global-orgel-ref) *msl-style*))
-        (init-vslider :bw p5 orgelidx orgel global-orgel-ref)
+              (apply #'multi-vslider p5 :receiver-fn (make-orgel-array-receiver :level orgelidx global-orgel-ref) *msl-style*))
+        (init-vslider :bias-bw p5 orgelidx orgel global-orgel-ref)
         (loop for vsl in vsliders
               for idx from 0
               do (progn
-                   (setf (value vsl) (aref (orgel-level-sliders global-orgel-ref) idx))
-                   (setf (aref (orgel-level-sliders orgel) idx) vsl)))
+                   (setf (value vsl) (aref (orgel-level global-orgel-ref) idx))
+                   (setf (aref (orgel-level orgel) idx) vsl)))
 ;;;        (hslider p1 :background "#444" :color "#444" :thumbcolor "orange" :height "8px" :width "160px")
-        (init-hslider :bias p1 orgelidx orgel global-orgel-ref :height "8px" :width "160px")
+        (init-hslider :bias-pos p1 orgelidx orgel global-orgel-ref :height "8px" :width "160px")
 
-        (dolist (label '("Delay" "Bp" "Gain" "Osc-Level"))
-          (let ((slot-name (make-symbol (format nil "~:@(~a-sliders~)" label))))
+        (dolist (label '("Delay" "Q" "Gain" "Osc-Level"))
+          (let ((slot-name (make-symbol (format nil "~:@(~a~)" label))))
             (setf vsliders (create-slider-panel
                             p1
                             :label label

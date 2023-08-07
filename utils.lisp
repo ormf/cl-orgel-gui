@@ -30,7 +30,10 @@
                          (color "black")
                          (background "white")
                          (selected-background "gray")
-                         (selected-foreground "black"))
+                         (selected-foreground "black")
+                         (value-off "0.0")
+                         (value-on "1.0")
+)
   (let ((name (intern (format nil "~:@(tg-~a~)" slot)))
         (accessor (intern (format nil "~:@(orgel-~a~)" slot))))
     `(let* ((,name (toggle ,parent
@@ -41,6 +44,8 @@
                            :background ,background
                            :selected-background ,selected-background
                            :selected-foreground ,selected-foreground
+                           :value-off ,value-off
+                           :value-on ,value-on
                            :slot ,slot
                            :receiver-fn (make-orgel-attr-val-receiver ,slot ,orgelidx ,global-orgel))))
        (setf (,accessor ,local-orgel) ,name)
@@ -55,11 +60,11 @@
   (let ((name (intern (format nil "~:@(tg-~a~)" slot)))
         (accessor (intern (format nil "~:@(orgel-~a~)" slot))))
     `(let* ((,name (vslider ,parent
-                            :style (format nil "width: ~apx;height: 100% ;--slider-thumb-height: 2px;--slider-thumb-width: 100%;flex: 0 0 auto;" ,size)
+                            :style (format nil "box-sizing: border-box;width: ~apx;height: 100%;--slider-thumb-height: 2px;--slider-thumb-width: 100%;flex: 0 0 auto;" ,size)
                             :thumbcolor ,thumbcolor
                             :color ,color
                             :background ,background
-                            :receiver-fn (make-orgel-val-receiver ,slot ,orgelidx ,global-orgel))))
+                            :receiver-fn (make-orgel-attr-val-receiver ,slot ,orgelidx ,global-orgel))))
        (setf (,accessor ,local-orgel) ,name)
        (setf (value ,name) (,accessor ,global-orgel))
        ,name)))
@@ -141,6 +146,31 @@ orgel1 orgel2
   `(progn
      ,@(collect-terms slots containers orgelidx local-orgel global-orgel size)))
 
+(defmacro init-multi-vu (slot parent orgelidx local-orgel global-orgel
+                         &key (num 8) (width 80) (height 100) (background "#444") (direction :up) (border "none")
+                           (inner-background "var(--vu-background)") (inner-border "thin solid black") (inner-padding "0")
+                           (inner-padding-bottom "0px")
+                           (led-colors :blue) (style "margin-bottom: 10px;position: absolute;top: 0;left: 0;")
+                           receiver-fn)
+  (declare (ignore orgelidx global-orgel))
+  (let ((vus (gensym "vus"))
+        (container (gensym "vu-container"))
+        (accessor (intern (format nil "~:@(orgel-~a~)" slot))))
+    `(multiple-value-bind (,vus ,container)
+         (multi-vu ,parent :num ,num :width ,width :height ,height
+                           :led-colors ,led-colors
+                           :direction ,direction :background ,background
+                           :inner-background ,inner-background
+                           :border ,border :inner-border ,inner-border
+                           :inner-padding-bottom ,inner-padding-bottom
+                           :inner-padding ,inner-padding
+                           :style ,style
+                           :receiver-fn ,receiver-fn)
+       (setf (,accessor ,local-orgel) ,vus)
+       (dolist (vu ,vus) (setf (attribute vu "data-db") -100))
+       (values ,vus ,container))))
+
+
 (defparameter *slot-labels* '((:ramp-down . :ramp-dwn)))
 
 (defun slot-label (slot)
@@ -168,7 +198,7 @@ orgel1 orgel2
   (create-div container :content label :style *msl-title-style*)
   (apply #'multi-vslider container :receiver-fn receiver-fn *msl-style*))
 
-(defun make-orgel-attr-val-receiver (slot orgelidx global-orgel-ref)
+(defun make-orgel-attr-val-receiver (slot orgelidx global-orgel-ref &key (attribute "data-val"))
   (let ((slot-symbol (intern (format nil "~:@(~a~)" slot) 'cl-orgel-gui)))
     (lambda (val self)
       (let* ((val-string (ensure-string val))
@@ -181,7 +211,7 @@ orgel1 orgel2
                    (let* ((orgel-gui (gethash "orgel-gui" connection-hash)))
                      (when orgel-gui (let ((elem (slot-value (aref (orgel-gui-orgeln orgel-gui) orgelidx) slot-symbol)))
 ;;;                                       (break "self: ~a~% elem: ~a" self elem)
-                                       (unless (equal self elem) (setf (attribute elem "data-val") val-string))))))
+                                       (unless (equal self elem) (setf (attribute elem attribute) val-string))))))
                  clog-connection::*connection-data*)))))
 
 (defun make-orgel-val-receiver (slot orgelidx global-orgel-ref)
@@ -221,11 +251,11 @@ orgel1 orgel2
 
 (defun synchronize-vsl (idx val self)
   (let ((val-string (ensure-string val)))
-    (setf (aref (orgel-level-sliders *curr-orgel-state*) idx) val-string)
+    (setf (aref (orgel-level *curr-orgel-state*) idx) val-string)
     (maphash (lambda (connection-id connection-hash)
                (declare (ignore connection-id))
                (let ((orgel-gui (gethash "orgel-gui" connection-hash)))
-                 (when orgel-gui (let ((elem (aref (orgel-level-sliders orgel) idx)))
+                 (when orgel-gui (let ((elem (aref (orgel-level orgel) idx)))
                                    (unless (equal self elem) (setf (value elem) val-string))))))
              clog-connection::*connection-data*)))
 
@@ -262,7 +292,7 @@ orgel1 orgel2
 (defun install-preset-key-switch (container vu-id preset-panel-id)
   (js-execute
    container
-   (format nil "document.onkeyup = function (event) {
+   (format nil "document.onkeydown = function (event) {
   if (event.which == 112 || event.keyCode == 112) {
    document.getElementById('~a').style.display = \"flex\";
    document.getElementById('~a').style.display = \"none\";
