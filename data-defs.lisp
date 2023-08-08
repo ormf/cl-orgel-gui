@@ -23,6 +23,25 @@
 (defvar *orgelcount* 10)
 
 (defstruct orgel
+  (base-freq 0.0 :type float)
+  (phase 0.0 :type float)
+  (bias-pos 0.0 :type float)
+  (bias-bw 0.0 :type float)
+  (bias-type 0.0 :type float)
+  (main 0.0 :type float)
+  (min-amp 0.0 :type float)
+  (max-amp 0.0 :type float)
+  (ramp-up 0.0 :type float)
+  (ramp-down 0.0 :type float)
+  (exp-base 0.0 :type float)
+  (level (make-array 16 :initial-element 0.0) :type simple-array)
+  (bias-level (make-array 16 :initial-element 0.0) :type simple-array)
+  (delay (make-array 16 :initial-element 0.0) :type simple-array)
+  (q (make-array 16 :initial-element 0.0) :type simple-array)
+  (gain (make-array 16 :initial-element 0.0) :type simple-array)
+  (osc-level (make-array 16 :initial-element 0.0) :type simple-array))
+
+(defstruct g-orgel
   (ramp-up "29.0")
   (ramp-down "29.0")
   (exp-base "0.0")
@@ -46,7 +65,9 @@
 
 (defstruct orgel-gui
   (orgeln (make-array *orgelcount*
-                     :initial-contents (v-collect (n *orgelcount*) (make-orgel))))
+                     :initial-contents (v-collect (n *orgelcount*) (make-g-orgel))))
   (presets (make-gui-presets)))
 
-(defparameter *curr-orgel-state* (make-orgel-gui))
+(defparameter *curr-state*
+  (make-array *orgelcount*
+              :initial-contents (v-collect (n *orgelcount*) (make-orgel))))

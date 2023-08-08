@@ -20,4 +20,15 @@
 (defpackage #:cl-orgel-gui
   (:use #:cl #:orm-utils #:clog #:clog-gui)
   (:shadowing-import-from #:clog #:rotate)
-  (:export start-orgel-gui))
+  (:export #:orgel #:make-orgel #:orgel-ramp-up #:orgel-ramp-down #:orgel-exp-base #:orgel-base-freq #:orgel-min-amp #:orgel-max-amp #:orgel-phase #:orgel-bias-type #:orgel-level #:orgel-delay #:orgel-q #:orgel-gain #:orgel-osc-level
+;; ;;; #:orgel-meters
+           #:orgel-main #:orgel-bias-bw #:orgel-bias-pos #:start-orgel-gui
+           #:start-orgel-gui
+
+           #:ramp-up #:ramp-down #:exp-base #:base-freq #:min-amp #:max-amp #:phase #:bias-type #:level #:delay #:q #:gain #:osc-level
+;; ;;; #:meters
+           #:main #:bias-bw #:bias-pos #:*curr-state*
+           #:start-orgel-gui
+
+
+           ))

@@ -35,6 +35,7 @@
                          (value-on "1.0")
 )
   (let ((name (intern (format nil "~:@(tg-~a~)" slot)))
+        (g-accessor (intern (format nil "~:@(g-orgel-~a~)" slot)))
         (accessor (intern (format nil "~:@(orgel-~a~)" slot))))
     `(let* ((,name (toggle ,parent
                            :size ,size
@@ -48,7 +49,7 @@
                            :value-on ,value-on
                            :slot ,slot
                            :receiver-fn (make-orgel-attr-val-receiver ,slot ,orgelidx ,global-orgel))))
-       (setf (,accessor ,local-orgel) ,name)
+       (setf (,g-accessor ,local-orgel) ,name)
        (setf (attribute ,name "data-val") (,accessor ,global-orgel))
        ,name)))
 
@@ -58,6 +59,7 @@
                           (background "#444")
                           (thumbcolor "orange"))
   (let ((name (intern (format nil "~:@(tg-~a~)" slot)))
+        (g-accessor (intern (format nil "~:@(g-orgel-~a~)" slot)))
         (accessor (intern (format nil "~:@(orgel-~a~)" slot))))
     `(let* ((,name (vslider ,parent
                             :style (format nil "box-sizing: border-box;width: ~apx;height: 100%;--slider-thumb-height: 2px;--slider-thumb-width: 100%;flex: 0 0 auto;" ,size)
@@ -65,7 +67,7 @@
                             :color ,color
                             :background ,background
                             :receiver-fn (make-orgel-attr-val-receiver ,slot ,orgelidx ,global-orgel))))
-       (setf (,accessor ,local-orgel) ,name)
+       (setf (,g-accessor ,local-orgel) ,name)
        (setf (value ,name) (,accessor ,global-orgel))
        ,name)))
 
@@ -79,6 +81,7 @@
                           (background "#444")
                           (thumbcolor "orange"))
   (let ((name (intern (format nil "~:@(tg-~a~)" slot)))
+        (g-accessor (intern (format nil "~:@(g-orgel-~a~)" slot)))
         (accessor (intern (format nil "~:@(orgel-~a~)" slot))))
     `(let* ((,name (hslider ,parent
                             :thumbcolor ,thumbcolor
@@ -87,9 +90,10 @@
                             :width ,width
                             :height ,height
                             :receiver-fn (make-orgel-val-receiver ,slot ,orgelidx ,global-orgel))))
-       (setf (,accessor ,local-orgel) ,name)
+       (setf (,g-accessor ,local-orgel) ,name)
        (setf (value ,name) (,accessor ,global-orgel))
        ,name)))
+
 (defmacro init-button (container &key (content "") style (background "#fff") (active-bg "#444"))
   (let ((btn (gensym "btn")))
     `(let ((,btn
@@ -109,6 +113,7 @@
 
 (defmacro init-numbox (slot parent orgelidx local-orgel global-orgel &key (size 10))
   (let ((name (intern (format nil "~:@(nb-~a~)" slot)))
+        (g-accessor (intern (format nil "~:@(g-orgel-~a~)" slot)))
         (accessor (intern (format nil "~:@(orgel-~a~)" slot)))
         (slot-label (intern (format nil "~:@(~a~)" slot))))
     `(let* (
@@ -119,7 +124,7 @@
                            :receiver-fn (make-orgel-val-receiver ,slot ,orgelidx ,global-orgel)
                            :slot ',slot-label
                            :size ,size)))
-       (setf (,accessor ,local-orgel) ,name)
+       (setf (,g-accessor ,local-orgel) ,name)
        (setf (value ,name) (,accessor ,global-orgel)))))
 
 
@@ -155,7 +160,9 @@ orgel1 orgel2
   (declare (ignore orgelidx global-orgel))
   (let ((vus (gensym "vus"))
         (container (gensym "vu-container"))
-        (accessor (intern (format nil "~:@(orgel-~a~)" slot))))
+        (g-accessor (intern (format nil "~:@(g-orgel-~a~)" slot)))
+;;;        (accessor (intern (format nil "~:@(orgel-~a~)" slot)))
+        )
     `(multiple-value-bind (,vus ,container)
          (multi-vu ,parent :num ,num :width ,width :height ,height
                            :led-colors ,led-colors
@@ -166,7 +173,7 @@ orgel1 orgel2
                            :inner-padding ,inner-padding
                            :style ,style
                            :receiver-fn ,receiver-fn)
-       (setf (,accessor ,local-orgel) ,vus)
+       (setf (,g-accessor ,local-orgel) ,vus)
        (dolist (vu ,vus) (setf (attribute vu "data-db") -100))
        (values ,vus ,container))))
 
@@ -202,9 +209,12 @@ orgel1 orgel2
   (let ((slot-symbol (intern (format nil "~:@(~a~)" slot) 'cl-orgel-gui)))
     (lambda (val self)
       (let* ((val-string (ensure-string val))
+             (orgel-val (/ (read-from-string val-string)
+                           (if (member slot '(:main :bias-bw)) 100.0 1.0)))
 ;;;             (num-val (read-from-string val-string))
              )
-        (setf (slot-value global-orgel-ref slot-symbol) val-string)
+        (setf (slot-value global-orgel-ref slot-symbol) orgel-val)
+;;        (cl-orgelctl::orgel-ctl (cl-orgelctl::orgel-name (1+ orgelidx)) slot orgel-val)
         (maphash (lambda (connection-id connection-hash)
                    (declare (ignore connection-id))
 ;;;                   (break "~a" (gethash "orgel-gui" connection-hash))
@@ -219,8 +229,11 @@ orgel1 orgel2
     (lambda (val self)
       (let* ((val-string (ensure-string val))
 ;;;             (num-val (read-from-string val-string))
-             )
-        (setf (slot-value global-orgel-ref slot-symbol) val-string)
+             (orgel-val (/ (read-from-string val-string)
+                           (if (member slot '(:main :bias-pos :bias-bw)) 100.0 1.0))))
+;;;        (break "val-receiver: ~S" slot)
+        (setf (slot-value global-orgel-ref slot-symbol) orgel-val)
+;;        (cl-orgelctl::orgel-ctl (cl-orgelctl::orgel-name (1+ orgelidx)) slot orgel-val)
         (maphash (lambda (connection-id connection-hash)
                    (declare (ignore connection-id))
 ;;;                   (break "~a" (gethash "orgel-gui" connection-hash))
@@ -230,19 +243,22 @@ orgel1 orgel2
                                        (unless (equal self elem) (setf (value elem) val-string))))))
                  clog-connection::*connection-data*)))))
 
-(defun make-orgel-array-receiver (slot orgel-idx global-orgel-ref)
-  (let ((accessor (slot->function "orgel" slot)))
+(defun make-orgel-array-receiver (slot orgelidx global-orgel-ref)
+  (let ((g-accessor (slot->function "g-orgel" slot))
+        (accessor (slot->function "orgel" slot)))
     (lambda (idx val self)
       (let* ((val-string (ensure-string val))
 ;;;             (num-val (read-from-string val-string))
+             (orgel-val (/ (read-from-string val-string) 100.0))
              )
-        (setf (aref (funcall accessor global-orgel-ref) idx) val-string)
+        (setf (aref (funcall accessor global-orgel-ref) idx) orgel-val)
+;;        (cl-orgelctl::orgel-ctl-fader (cl-orgelctl::orgel-name (1+ orgelidx)) slot (1+ idx) orgel-val)
         (maphash (lambda (connection-id connection-hash)
                    (declare (ignore connection-id))
 ;;;                   (break "~a" (gethash "orgel-gui" connection-hash))
                    (let* ((orgel-gui (gethash "orgel-gui" connection-hash))
-                          (orgel (aref (orgel-gui-orgeln orgel-gui) orgel-idx)))
-                     (when orgel-gui (let ((elem (aref (funcall accessor orgel) idx)))
+                          (orgel (aref (orgel-gui-orgeln orgel-gui) orgelidx)))
+                     (when orgel-gui (let ((elem (aref (funcall g-accessor orgel) idx)))
 ;;;                                       (break "~a" orgel)
                                        (unless (equal self elem) (setf (value elem) val-string))))))
                  clog-connection::*connection-data*)))))
