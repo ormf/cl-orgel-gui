@@ -159,7 +159,7 @@
         (loop for vsl in vsliders
               for idx from 0
               do (progn
-                   (setf (value vsl) (* 100.0 (aref (orgel-level global-orgel-ref) idx)))
+                   (setf (value vsl) (* 100.0 (val (aref (orgel-level global-orgel-ref) idx))))
                    (setf (aref (g-orgel-level orgel) idx) vsl)))
 ;;;        (hslider p1 :background "#444" :color "#444" :thumbcolor "orange" :height "8px" :width "160px")
         (init-hslider :bias-pos p1 orgelidx orgel global-orgel-ref :height "8px" :width "160px")
@@ -177,7 +177,7 @@
               (loop for vsl in vsliders
                     for idx from 0
                     do (progn
-                         (setf (value vsl) (* 100.0 (aref (funcall accessor-fn global-orgel-ref) idx)))
+                         (setf (value vsl) (* 100.0 (val (aref (funcall accessor-fn global-orgel-ref) idx))))
                          (setf (aref (funcall g-accessor-fn orgel) idx) vsl))))))
         ))
 

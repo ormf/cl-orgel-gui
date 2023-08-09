@@ -50,7 +50,7 @@
                            :slot ,slot
                            :receiver-fn (make-orgel-attr-val-receiver ,slot ,orgelidx ,global-orgel))))
        (setf (,g-accessor ,local-orgel) ,name)
-       (setf (attribute ,name "data-val") (,accessor ,global-orgel))
+       (setf (attribute ,name "data-val") (val (,accessor ,global-orgel)))
        ,name)))
 
 (defmacro init-vslider (slot parent orgelidx local-orgel global-orgel
@@ -68,7 +68,7 @@
                             :background ,background
                             :receiver-fn (make-orgel-attr-val-receiver ,slot ,orgelidx ,global-orgel))))
        (setf (,g-accessor ,local-orgel) ,name)
-       (setf (value ,name) (* 100 (,accessor ,global-orgel)))
+       (setf (value ,name) (* 100 (val (,accessor ,global-orgel))))
        ,name)))
 
 
@@ -91,7 +91,7 @@
                             :height ,height
                             :receiver-fn (make-orgel-attr-val-receiver ,slot ,orgelidx ,global-orgel))))
        (setf (,g-accessor ,local-orgel) ,name)
-       (setf (value ,name) (* 100 (,accessor ,global-orgel)))
+       (setf (value ,name) (* 100 (val (,accessor ,global-orgel))))
        ,name)))
 
 (defmacro init-button (container &key (content "") style (background "#fff") (active-bg "#444"))
@@ -125,7 +125,7 @@
                            :slot ',slot-label
                            :size ,size)))
        (setf (,g-accessor ,local-orgel) ,name)
-       (setf (value ,name) (,accessor ,global-orgel)))))
+       (setf (value ,name) (val (,accessor ,global-orgel))))))
 
 
 ;;; (init-numbox :base-freq nbs1 (aref (orgel-gui-orgeln *papierrohrorgeln*) 0))
@@ -176,7 +176,7 @@ orgel1 orgel2
        (setf (,g-accessor ,local-orgel) ,vus)
        (loop for vu in ,vus
              for idx from 0
-             do (setf (attribute vu "data-db") (- (aref (aref *orgel-mlevel* orgelidx) idx) 100)))
+             do (setf (attribute vu "data-db") (- (val (aref (aref *orgel-mlevel* orgelidx) idx)) 100)))
        (values ,vus ,container))))
 
 
@@ -215,7 +215,7 @@ orgel1 orgel2
                            (if (member slot '(:main :bias-bw)) 100.0 1.0)))
 ;;;             (num-val (read-from-string val-string))
              )
-        (setf (slot-value global-orgel-ref slot-symbol) orgel-val)
+        (setf (val (slot-value global-orgel-ref slot-symbol)) orgel-val)
 ;;        (cl-orgelctl::orgel-ctl (cl-orgelctl::orgel-name (1+ orgelidx)) slot orgel-val)
         (maphash (lambda (connection-id connection-hash)
                    (declare (ignore connection-id))
@@ -234,7 +234,7 @@ orgel1 orgel2
              (orgel-val (/ (read-from-string val-string)
                            (if (member slot '(:main :bias-pos :bias-bw)) 100.0 1.0))))
 ;;;        (break "val-receiver: ~S" slot)
-        (setf (slot-value global-orgel-ref slot-symbol) orgel-val)
+        (setf (val (slot-value global-orgel-ref slot-symbol)) orgel-val)
 ;;        (cl-orgelctl::orgel-ctl (cl-orgelctl::orgel-name (1+ orgelidx)) slot orgel-val)
         (maphash (lambda (connection-id connection-hash)
                    (declare (ignore connection-id))
@@ -253,7 +253,7 @@ orgel1 orgel2
 ;;;             (num-val (read-from-string val-string))
              (orgel-val (/ (read-from-string val-string) 100.0))
              )
-        (setf (aref (funcall accessor global-orgel-ref) idx) orgel-val)
+        (setf (val (aref (funcall accessor global-orgel-ref) idx)) orgel-val)
 ;;        (cl-orgelctl::orgel-ctl-fader (cl-orgelctl::orgel-name (1+ orgelidx)) slot (1+ idx) orgel-val)
         (maphash (lambda (connection-id connection-hash)
                    (declare (ignore connection-id))

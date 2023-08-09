@@ -8,7 +8,7 @@
   :author "Orm Finnendahl <orm.finnendahl@selma.hfmdk-frankfurt.de>"
   :license  "gpl 2.0 or later"
   :version "0.0.1"
-  :depends-on (#:clog #:orm-utils #:uuid)
+  :depends-on (#:clog #:orm-utils #:cellctl #:uuid)
   :serial t
   :components ((:file "package")
                (:file "data-defs")

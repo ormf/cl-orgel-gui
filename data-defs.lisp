@@ -23,23 +23,23 @@
 (defvar *orgelcount* 10)
 
 (defstruct orgel
-  (base-freq 0.0 :type float)
-  (phase 0.0 :type float)
-  (bias-pos 0.0 :type float)
-  (bias-bw 0.0 :type float)
-  (bias-type 0.0 :type float)
-  (main 0.0 :type float)
-  (min-amp 0.0 :type float)
-  (max-amp 0.0 :type float)
-  (ramp-up 0.0 :type float)
-  (ramp-down 0.0 :type float)
-  (exp-base 0.0 :type float)
-  (level (make-array 16 :initial-element 0.0) :type simple-array)
+  (base-freq (make-instance 'model-slot) :type model-slot)
+  (phase (make-instance 'model-slot) :type model-slot)
+  (bias-pos (make-instance 'model-slot) :type model-slot)
+  (bias-bw (make-instance 'model-slot) :type model-slot)
+  (bias-type (make-instance 'model-slot) :type model-slot)
+  (main (make-instance 'model-slot) :type model-slot)
+  (min-amp (make-instance 'model-slot) :type model-slot)
+  (max-amp (make-instance 'model-slot) :type model-slot)
+  (ramp-up (make-instance 'model-slot) :type model-slot)
+  (ramp-down (make-instance 'model-slot) :type model-slot)
+  (exp-base (make-instance 'model-slot) :type model-slot)
+  (level (make-array 16 :initial-contents (v-collect (n 16) (make-instance 'model-slot))) :type simple-array)
 ;;;  (bias-level (make-array 16 :initial-element 0.0) :type simple-array)
-  (delay (make-array 16 :initial-element 0.0) :type simple-array)
-  (q (make-array 16 :initial-element 0.0) :type simple-array)
-  (gain (make-array 16 :initial-element 0.0) :type simple-array)
-  (osc-level (make-array 16 :initial-element 0.0) :type simple-array))
+  (delay (make-array 16 :initial-contents (v-collect (n 16) (make-instance 'model-slot))) :type simple-array)
+  (q (make-array 16 :initial-contents (v-collect (n 16) (make-instance 'model-slot))) :type simple-array)
+  (gain (make-array 16 :initial-contents (v-collect (n 16) (make-instance 'model-slot))) :type simple-array)
+  (osc-level (make-array 16 :initial-contents (v-collect (n 16) (make-instance 'model-slot))) :type simple-array))
 
 (defstruct g-orgel
   (ramp-up "29.0")
@@ -78,6 +78,6 @@
               :initial-contents
               (loop
                 for i below *orgelcount*
-                collect (make-array 16 :element-type 'float
-                                       :initial-contents (loop for x below 16 collect 0.0))))
+                collect (make-array 16 :element-type 'model-slot
+                                       :initial-contents (loop for x below 16 collect (make-instance 'model-slot)))))
   "all volume levels currently measured in pd (permanently updated).")
