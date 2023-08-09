@@ -28,6 +28,7 @@
            #:ramp-up #:ramp-down #:exp-base #:base-freq #:min-amp #:max-amp #:phase #:bias-type #:level #:delay #:q #:gain #:osc-level
 ;; ;;; #:meters
            #:main #:bias-bw #:bias-pos #:*curr-state* #:*orgel-mlevel*
+           #:orgel-gui-orgeln
            #:start-orgel-gui
 
 
