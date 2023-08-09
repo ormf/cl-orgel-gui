@@ -197,7 +197,7 @@
     ;; When doing extensive setup of a page using connection cache
     ;; reduces rountrip traffic and speeds setup.
     (with-connection-cache (body)
-      (let ((gui-container (create-div body :style "display: flex;")))
+      (let ((gui-container (create-div body :style "display: flex;overflow: auto;margin-right: 15px;padding-bottom:30px;")))
         (dotimes (i 10)
           (let ((orgel (aref (orgel-gui-orgeln orgel-gui) i))
                 (global-orgel-ref (aref *curr-state* i)))

@@ -71,3 +71,13 @@
 (defparameter *curr-state*
   (make-array *orgelcount*
               :initial-contents (v-collect (n *orgelcount*) (make-orgel))))
+
+(defparameter *orgel-mlevel*
+  (make-array *orgelcount*
+              :element-type 'simple-array
+              :initial-contents
+              (loop
+                for i below *orgelcount*
+                collect (make-array 16 :element-type 'float
+                                       :initial-contents (loop for x below 16 collect 0.0))))
+  "all volume levels currently measured in pd (permanently updated).")

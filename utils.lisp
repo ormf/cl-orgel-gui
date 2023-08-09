@@ -174,7 +174,9 @@ orgel1 orgel2
                            :style ,style
                            :receiver-fn ,receiver-fn)
        (setf (,g-accessor ,local-orgel) ,vus)
-       (dolist (vu ,vus) (setf (attribute vu "data-db") -100))
+       (loop for vu in ,vus
+             for idx from 0
+             do (setf (attribute vu "data-db") (- (aref (aref *orgel-mlevel* orgelidx) idx) 100)))
        (values ,vus ,container))))
 
 
