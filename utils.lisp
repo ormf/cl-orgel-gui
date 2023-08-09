@@ -68,7 +68,7 @@
                             :background ,background
                             :receiver-fn (make-orgel-attr-val-receiver ,slot ,orgelidx ,global-orgel))))
        (setf (,g-accessor ,local-orgel) ,name)
-       (setf (value ,name) (,accessor ,global-orgel))
+       (setf (value ,name) (* 100 (,accessor ,global-orgel)))
        ,name)))
 
 
@@ -89,9 +89,9 @@
                             :background ,background
                             :width ,width
                             :height ,height
-                            :receiver-fn (make-orgel-val-receiver ,slot ,orgelidx ,global-orgel))))
+                            :receiver-fn (make-orgel-attr-val-receiver ,slot ,orgelidx ,global-orgel))))
        (setf (,g-accessor ,local-orgel) ,name)
-       (setf (value ,name) (,accessor ,global-orgel))
+       (setf (value ,name) (* 100 (,accessor ,global-orgel)))
        ,name)))
 
 (defmacro init-button (container &key (content "") style (background "#fff") (active-bg "#444"))

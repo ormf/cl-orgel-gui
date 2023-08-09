@@ -35,7 +35,7 @@
   (ramp-down 0.0 :type float)
   (exp-base 0.0 :type float)
   (level (make-array 16 :initial-element 0.0) :type simple-array)
-  (bias-level (make-array 16 :initial-element 0.0) :type simple-array)
+;;;  (bias-level (make-array 16 :initial-element 0.0) :type simple-array)
   (delay (make-array 16 :initial-element 0.0) :type simple-array)
   (q (make-array 16 :initial-element 0.0) :type simple-array)
   (gain (make-array 16 :initial-element 0.0) :type simple-array)
