@@ -136,17 +136,6 @@
     for container in containers
     collect `(init-numbox ,slot ,container ,orgelidx ,local-orgel ,global-orgel :size ,size)))
 
-#|
-(collect-terms '(:ramp-up :ramp-down :exp-base :base-freq :max-amp :min-amp)
-               '(nbs1 nbs1 nbs1 nbs2 nbs2 nbs2))
-
-(init-numboxes (:ramp-up :ramp-down :exp-base :base-freq :max-amp :min-amp)
-(nbs1 nbs1 nbs1 nbs2 nbs2 nbs2)
-orgel1 orgel2
-:size 6)
-
-|#
-
 (defmacro init-numboxes (slots containers orgelidx local-orgel global-orgel &key (size 10))
   `(progn
      ,@(collect-terms slots containers orgelidx local-orgel global-orgel size)))
@@ -199,6 +188,7 @@ orgel1 orgel2
             for num from 1
             for col in cols
             collect (list name num (hex->rgb col)))))
+
 
 (defun cols->jsarray (cols)
   (format nil "[~{'rgba(~{~a~^, ~}, 1.0)'~^, ~}]" (mapcar #'hex->rgb cols)))
@@ -265,47 +255,9 @@ orgel1 orgel2
                                        (unless (equal self elem) (setf (value elem) val-string))))))
                  clog-connection::*connection-data*)))))
 
-#|
-
-(defun synchronize-vsl (idx val self)
-  (let ((val-string (ensure-string val)))
-    (setf (aref (orgel-level *curr-orgel-state*) idx) val-string)
-    (maphash (lambda (connection-id connection-hash)
-               (declare (ignore connection-id))
-               (let ((orgel-gui (gethash "orgel-gui" connection-hash)))
-                 (when orgel-gui (let ((elem (aref (orgel-level orgel) idx)))
-                                   (unless (equal self elem) (setf (value elem) val-string))))))
-             clog-connection::*connection-data*)))
-
-(defun synchronize-numbox (slot val self)
-  (let ((val-string (ensure-string val)))
-    (setf (slot-value *curr-orgel-state* slot) val-string)
-    (maphash (lambda (connection-id connection-hash)
-               (declare (ignore connection-id))
-               (let ((orgel-gui (gethash "orgel-gui" connection-hash)))
-                 (when orgel-gui
-                   (let ((elem (slot-value (gethash "orgel-gui" connection-hash) slot)))
-                     (unless (equal self elem) (setf (value elem) val-string))))))
-             clog-connection::*connection-data*)))
-
-(defun make-vsl-synchronizer (slot orgelidx)
-  (labels ((accessor)))
-
-  )
-|#
-
 (defun slot->function (struct-name slot &optional (package 'cl-orgel-gui))
   "get the function object for a slot of a struct with prefix"
   (symbol-function (intern (string-upcase (format nil "~a-~a" struct-name slot)) package)))
-
-#|
-(defun get-vsl-accessor (orgelidx slot faderidx)
-  (lambda (orgelgui)
-    (aref (funcall (slot->function "gui-orgel" slot)
-                   (gui-orgel-data-params
-                    (aref (orgel-gui-orgeln orgelgui) orgelidx)))
-          faderidx)))
-|#
 
 (defun install-preset-key-switch (container vu-id preset-panel-id)
   (js-execute

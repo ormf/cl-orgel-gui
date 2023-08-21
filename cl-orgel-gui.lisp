@@ -203,7 +203,7 @@
                 (global-orgel-ref (aref *curr-state* i)))
             (create-orgel-gui i gui-container orgel global-orgel-ref)))))))
 
-    (defun start-orgel-gui ()
+(defun start-orgel-gui ()
   "Start Orgel Gui."
   (initialize 'on-new-window
               :static-root (merge-pathnames "./www/"
