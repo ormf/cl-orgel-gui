@@ -48,7 +48,7 @@
                            :value-off ,value-off
                            :value-on ,value-on
                            :slot ,slot
-                           :receiver-fn (make-orgel-attr-val-receiver ,slot ,orgelidx ,global-orgel))))
+                           :val-change-cb (make-orgel-attr-val-receiver ,slot ,orgelidx ,global-orgel))))
        (setf (,g-accessor ,local-orgel) ,name)
        (setf (attribute ,name "data-val") (val (,accessor ,global-orgel)))
        ,name)))
@@ -66,9 +66,9 @@
                             :thumbcolor ,thumbcolor
                             :color ,color
                             :background ,background
-                            :receiver-fn (make-orgel-attr-val-receiver ,slot ,orgelidx ,global-orgel))))
+                            :val-change-cb (make-orgel-attr-val-receiver ,slot ,orgelidx ,global-orgel))))
        (setf (,g-accessor ,local-orgel) ,name)
-       (setf (value ,name) (* 100 (val (,accessor ,global-orgel))))
+;;       (setf (value ,name) (* 100 (val (,accessor ,global-orgel))))
        ,name)))
 
 
@@ -89,9 +89,9 @@
                             :background ,background
                             :width ,width
                             :height ,height
-                            :receiver-fn (make-orgel-attr-val-receiver ,slot ,orgelidx ,global-orgel))))
+                            :val-change-cb (make-orgel-attr-val-receiver ,slot ,orgelidx ,global-orgel))))
        (setf (,g-accessor ,local-orgel) ,name)
-       (setf (value ,name) (* 100 (val (,accessor ,global-orgel))))
+;;       (setf (value ,name) (* 100 (val (,accessor ,global-orgel))))
        ,name)))
 
 (defmacro init-button (container &key (content "") style (background "#fff") (active-bg "#444"))
@@ -121,7 +121,7 @@
             (,name (numbox container
                            :label ,(format nil "~(~A~)" (slot-label slot))
                            :color "black" :background-color "#fff"
-                           :receiver-fn (make-orgel-val-receiver ,slot ,orgelidx ,global-orgel)
+                           :val-change-cb (make-orgel-val-receiver ,slot ,orgelidx ,global-orgel)
                            :slot ',slot-label
                            :size ,size)))
        (setf (,g-accessor ,local-orgel) ,name)
@@ -145,7 +145,7 @@
                            (inner-background "var(--vu-background)") (inner-border "thin solid black") (inner-padding "0")
                            (inner-padding-bottom "0px")
                            (led-colors :blue) (style "margin-bottom: 10px;position: absolute;top: 0;left: 0;")
-                           receiver-fn)
+                           val-change-cb)
   (declare (ignore orgelidx global-orgel))
   (let ((vus (gensym "vus"))
         (container (gensym "vu-container"))
@@ -161,7 +161,7 @@
                            :inner-padding-bottom ,inner-padding-bottom
                            :inner-padding ,inner-padding
                            :style ,style
-                           :receiver-fn ,receiver-fn)
+                           :val-change-cb ,val-change-cb)
        (setf (,g-accessor ,local-orgel) ,vus)
        (loop for vu in ,vus
              for idx from 0
@@ -195,7 +195,7 @@
 
 (defun create-slider-panel (container &key label receiver-fn)
   (create-div container :content label :style *msl-title-style*)
-  (apply #'multi-vslider container :receiver-fn receiver-fn *msl-style*))
+  (apply #'multi-slider container :val-change-cb receiver-fn *msl-style*))
 
 (defun make-orgel-attr-val-receiver (slot orgelidx global-orgel-ref &key (attribute "data-val"))
   (let ((slot-symbol (intern (format nil "~:@(~a~)" slot) 'cl-orgel-gui)))

@@ -23,6 +23,7 @@
 (defparameter *my-vus* nil)
 (defparameter *preset-panel* nil)
 
+#|
 (defmethod clog:create-div ((obj clog-obj) &rest args
                             &key (content "")
                               (style nil)
@@ -47,6 +48,7 @@
                 :clog-type  'clog-div
                 :html-id    html-id
                 :auto-place auto-place))
+|#
 
 (defun create-preset-panel (container vu-container)
   (let ((preset-panel
@@ -142,43 +144,47 @@
                            :inner-padding-bottom "0px"
                            :inner-padding "0"
                            :style "margin-bottom: 10px;position: absolute;top: 0;left: 0;"
-                           :receiver-fn nil)
+                           :val-change-cb nil)
           (declare (ignore vus))
           (when (zerop orgelidx)
             (create-preset-panel p7 vu-container)))
-        ;;; main volume slider
+        main volume slider
         (init-vslider :main p4 orgelidx orgel global-orgel-ref)
         (create-div p1 :height 10) ;;; distance
         (create-div p1 :content "Level" :style *msl-title-style*)
         (setf p5 (create-div p1 :width 180 :height 100 :style "padding-bottom: 5px;display: flex;justify-content: space-between;flex: 0 0 auto;"))
 ;;;        (setf p6 (create-div p5 :style "display: block;"))
 
-        (setf vsliders
-              (apply #'multi-vslider p5 :receiver-fn (make-orgel-array-receiver :level orgelidx global-orgel-ref) *msl-style*))
-        (init-vslider :bias-bw p5 orgelidx orgel global-orgel-ref)
-        (loop for vsl in vsliders
-              for idx from 0
-              do (progn
-                   (setf (value vsl) (* 100.0 (val (aref (orgel-level global-orgel-ref) idx))))
-                   (setf (aref (g-orgel-level orgel) idx) vsl)))
-;;;        (hslider p1 :background "#444" :color "#444" :thumbcolor "orange" :height "8px" :width "160px")
+        (multiple-value-bind (msl vsliders)
+            (apply #'multi-slider p5 :receiver-fn (make-orgel-array-receiver :level orgelidx global-orgel-ref) *msl-style*)
+          (declare (ignore msl))
+          (init-vslider :bias-bw p5 orgelidx orgel global-orgel-ref)
+          (loop for vsl across vsliders
+                for idx from 0
+                do (progn
+                     ;;                   (setf (value vsl) (* 100.0 (val (aref (orgel-level global-orgel-ref) idx))))
+                     ;;                   (setf (aref (g-orgel-level orgel) idx) vsl)
+                     )))
+       (hslider p1 :background "#444" :color "#444" :thumbcolor "orange" :height "8px" :width "160px")
         (init-hslider :bias-pos p1 orgelidx orgel global-orgel-ref :height "8px" :width "160px")
 
         (dolist (label '("Delay" "Q" "Gain" "Osc-Level"))
           (let ((slot-name (make-symbol (format nil "~:@(~a~)" label))))
-            (setf vsliders (create-slider-panel
-                            p1
-                            :label label
-                            :receiver-fn (make-orgel-array-receiver slot-name orgelidx global-orgel-ref)))
+            (multiple-value-bind (msl vsliders)
+                (create-slider-panel
+                 p1
+                 :label label
+                 :receiver-fn (make-orgel-array-receiver slot-name orgelidx global-orgel-ref))
+              (declare (ignore msl))
 
 ;;;        (create-br p1)
-            (let ((g-accessor-fn (slot->function "g-orgel" slot-name))
-                  (accessor-fn (slot->function "orgel" slot-name)))
-              (loop for vsl in vsliders
-                    for idx from 0
-                    do (progn
-                         (setf (value vsl) (* 100.0 (val (aref (funcall accessor-fn global-orgel-ref) idx))))
-                         (setf (aref (funcall g-accessor-fn orgel) idx) vsl))))))
+              (let ((g-accessor-fn (slot->function "g-orgel" slot-name))
+                    (accessor-fn (slot->function "orgel" slot-name)))
+                (loop for vsl across vsliders
+                      for idx from 0
+                      do (progn
+                           ;;                         (setf (value vsl) (* 100.0 (val (aref (funcall accessor-fn global-orgel-ref) idx))))
+                           (setf (aref (funcall g-accessor-fn orgel) idx) vsl)))))))
         ))
 
 (defun on-new-window (body)
