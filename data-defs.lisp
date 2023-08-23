@@ -24,10 +24,10 @@
 
 (defstruct orgel
   (base-freq (make-instance 'model-slot) :type model-slot)
-  (phase (make-instance 'model-slot) :type model-slot)
+  (phase (make-instance 'model-slot :val 1) :type model-slot)
   (bias-pos (make-instance 'model-slot) :type model-slot)
   (bias-bw (make-instance 'model-slot) :type model-slot)
-  (bias-type (make-instance 'model-slot) :type model-slot)
+  (bias-type (make-instance 'model-slot :val 0) :type model-slot)
   (main (make-instance 'model-slot) :type model-slot)
   (min-amp (make-instance 'model-slot) :type model-slot)
   (max-amp (make-instance 'model-slot) :type model-slot)
@@ -35,7 +35,6 @@
   (ramp-down (make-instance 'model-slot) :type model-slot)
   (exp-base (make-instance 'model-slot) :type model-slot)
   (level (make-array 16 :initial-contents (v-collect (n 16) (make-instance 'model-slot))) :type simple-array)
-;;;  (bias-level (make-array 16 :initial-element 0.0) :type simple-array)
   (delay (make-array 16 :initial-contents (v-collect (n 16) (make-instance 'model-slot))) :type simple-array)
   (q (make-array 16 :initial-contents (v-collect (n 16) (make-instance 'model-slot))) :type simple-array)
   (gain (make-array 16 :initial-contents (v-collect (n 16) (make-instance 'model-slot))) :type simple-array)

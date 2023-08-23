@@ -23,33 +23,6 @@
 (defparameter *my-vus* nil)
 (defparameter *preset-panel* nil)
 
-#|
-(defmethod clog:create-div ((obj clog-obj) &rest args
-                            &key (content "")
-                              (style nil)
-                              (hidden nil)
-                            height width
-                              (class nil)
-                              (html-id nil)
-                              (auto-place t)
-                            &allow-other-keys)
-  (when (or hidden style width height)
-    (setf (getf args :style) (format nil "~@[~a~]~@[~a~]~@[~a~]~@[~a~]"
-                                     (when hidden "visibility:hidden;")
-                                     style
-                                     (when width (format nil "width: ~a;" (addpx width)))
-                                     (when height (format nil "height: ~a;" (addpx height))))))
-  (dolist (key '(:hidden :html-id :auto-place :width :height)) (remf args key))
-;;;  (break "args: ~S" args)
-  (when class (setf (getf args :class) (format nil "~A" (escape-string class :html t))))
-  (create-child obj (format nil "<div ~{~(~A~)= \"~(~a~)\"~^ ~}>~A</div>"
-                            args
-                            content)
-                :clog-type  'clog-div
-                :html-id    html-id
-                :auto-place auto-place))
-|#
-
 (defun create-preset-panel (container vu-container)
   (let ((preset-panel
           (create-div container :height 80
@@ -64,15 +37,15 @@
        prv
        (lambda (obj)
          (declare (ignore obj))
-         (let ((curr (read-from-string (value nb))))
-           (when (> curr (read-from-string (attribute nb "min")))
+         (let ((curr (value nb)))
+           (when (> curr (read-from-string (attribute nb "data-min")))
              (setf (value nb) (1- curr))))))
       (set-on-click
        nxt
        (lambda (obj)
          (declare (ignore obj))
-         (let ((curr (read-from-string (value nb))))
-           (when (< curr (read-from-string (attribute nb "max")))
+         (let ((curr (value nb)))
+           (when (< curr (read-from-string (attribute nb "data-max")))
              (setf (value nb) (1+ curr))))))
       (create-br preset-panel)
       (let ((recall-btn
@@ -92,7 +65,7 @@
          recall-btn
          (lambda (obj)
            (declare (ignore obj))
-           (format t "recall preset ~d!~%" (read-from-string (value nb)))))
+           (format t "recall preset ~d!~%" (read-from-string (value nb))) (format t "recall preset ~d!~%" (read-from-string (value nb)))))
         (set-on-click
          store-btn
          (lambda (obj)
@@ -111,9 +84,9 @@
         (install-preset-key-switch container (html-id vu-container) (html-id preset-panel))))))
 
 (defun create-orgel-gui (orgelidx container orgel global-orgel-ref)
-      (let* (p1 p2 p3 p4 p5 p7 nbs1 nbs2 tg1-container tg2-container vsliders)
+      (let* (p1 p2 p3 p4 p5 p7 nbs1 nbs2 tg1-container tg2-container)
         (create-br container)
-        (setf p1  (create-div container :style "margin-left: 10px;"))
+        (setf p1  (create-div container :css '(:margin-left "10px" :width "180px")))
         (create-div p1 :content (format nil "Orgel~2,'0d" (1+ orgelidx)) :style "align: bottom; padding-bottom: 10px;")
         (setf p4  (create-div p1 :width 180 :height 150 :style "display: flex;justify-content: space-between;flex: 0 0 auto;"))
         (setf p3  (create-div p4))
@@ -123,87 +96,81 @@
         (init-numboxes
          (:ramp-up :ramp-down :exp-base :base-freq :max-amp :min-amp)
          (nbs1 nbs1 nbs1 nbs2 nbs2 nbs2)
+         ((0 1000) (0 1000) (0.01 10) (0 10000) (0 4) (0 4))
          orgelidx orgel global-orgel-ref
          :size 6)
         (setf tg1-container (create-div nbs1 :style "display: flex;justify-content: right;")) ;;; container for right alignment of toggle
         (init-toggle :phase tg1-container orgelidx orgel global-orgel-ref
-                     :content "phase" :toggle-content "inv" :size 6 :background "lightgreen"
-                     :value-on "-1.0" :value-off "1.0" :selected-background "red" :selected-foreground "white")
+                     :label '("phase" "inv") :size 6 :background '("lightgreen" "red")
+                     :values '("1" "-1") :value 1  :text-color '("black" "white"))
         (setf tg2-container (create-div nbs2 :style "display: flex;justify-content: right;")) ;;; container for right alignment of toggle
         (init-toggle :bias-type tg2-container orgelidx orgel global-orgel-ref
-                     :content "bandp" :toggle-content "notch" :size 6 :background "lightgreen"
-                     :selected-background "orange" :selected-foreground "black")
-        (setf p7 (create-div p3 :style "position: relative;" :height 80 :width 160))
-        (multiple-value-bind (vus vu-container)
-            (init-multi-vu :meters p7 orgelidx orgel global-orgel-ref
-                           :num 16 :width 160 :height 80
-                           :led-colors :blue
-                           :direction :up :background "#444"
-                           :inner-background "#444"
-                           :border "none" :inner-border "thin solid black"
-                           :inner-padding-bottom "0px"
-                           :inner-padding "0"
-                           :style "margin-bottom: 10px;position: absolute;top: 0;left: 0;"
-                           :val-change-cb nil)
-          (declare (ignore vus))
+                     :label '("bandp" "notch") :size 6 :background '("lightgreen" "orange"))
+        (Setf p7 (create-div p3 :style "position: relative;" :height 80 :width 160))
+        (let ((vu-container
+                (init-multi-vu :meters p7 orgelidx orgel global-orgel-ref
+                               :num 16 :width 160 :height 80
+                               :led-colors :blue
+                               :direction :up :background "#444"
+                               :inner-background "#444"
+                               :border "none" :inner-border "thin solid black"
+                               :inner-padding-bottom "0px"
+                               :inner-padding "0"
+                               :style "margin-bottom: 10px;position: absolute;top: 0;left: 0;"
+                               :val-change-cb nil)))
           (when (zerop orgelidx)
             (create-preset-panel p7 vu-container)))
-        main volume slider
-        (init-vslider :main p4 orgelidx orgel global-orgel-ref)
+;;;        main volume slider
+        (init-vslider :main p4 orgelidx orgel global-orgel-ref :height "150px" :css '(:margin-left 5px))
         (create-div p1 :height 10) ;;; distance
-        (create-div p1 :content "Level" :style *msl-title-style*)
+        (create-div p1 :content "Level" :css *msl-title-css*)
         (setf p5 (create-div p1 :width 180 :height 100 :style "padding-bottom: 5px;display: flex;justify-content: space-between;flex: 0 0 auto;"))
 ;;;        (setf p6 (create-div p5 :style "display: block;"))
-
-        (multiple-value-bind (msl vsliders)
-            (apply #'multi-slider p5 :receiver-fn (make-orgel-array-receiver :level orgelidx global-orgel-ref) *msl-style*)
-          (declare (ignore msl))
-          (init-vslider :bias-bw p5 orgelidx orgel global-orgel-ref)
-          (loop for vsl across vsliders
+        (let ((msl
+                (apply #'multi-slider p5 :val-change-cb (make-orgel-array-receiver :level orgelidx global-orgel-ref) *msl-style*)))
+          (init-vslider :bias-bw p5 orgelidx orgel global-orgel-ref :width "8px" :height "100px")
+          (loop for vsl across (sliders msl)
                 for idx from 0
                 do (progn
-                     ;;                   (setf (value vsl) (* 100.0 (val (aref (orgel-level global-orgel-ref) idx))))
-                     ;;                   (setf (aref (g-orgel-level orgel) idx) vsl)
+                     (setf (value vsl) (val (aref (orgel-level global-orgel-ref) idx)))
+                     (setf (aref (g-orgel-level orgel) idx) vsl)
                      )))
-       (hslider p1 :background "#444" :color "#444" :thumbcolor "orange" :height "8px" :width "160px")
+;;;       (hslider p1 :background "#444" :color "#444" :thumbcolor "orange" :height "8px" :width "160px")
         (init-hslider :bias-pos p1 orgelidx orgel global-orgel-ref :height "8px" :width "160px")
 
         (dolist (label '("Delay" "Q" "Gain" "Osc-Level"))
           (let ((slot-name (make-symbol (format nil "~:@(~a~)" label))))
-            (multiple-value-bind (msl vsliders)
-                (create-slider-panel
-                 p1
-                 :label label
-                 :receiver-fn (make-orgel-array-receiver slot-name orgelidx global-orgel-ref))
-              (declare (ignore msl))
-
+            (let ((msl
+                    (create-slider-panel
+                     p1
+                     :label label
+                     :val-change-cb (make-orgel-array-receiver slot-name orgelidx global-orgel-ref))))
 ;;;        (create-br p1)
               (let ((g-accessor-fn (slot->function "g-orgel" slot-name))
                     (accessor-fn (slot->function "orgel" slot-name)))
-                (loop for vsl across vsliders
+                (loop for vsl across (sliders msl)
                       for idx from 0
                       do (progn
-                           ;;                         (setf (value vsl) (* 100.0 (val (aref (funcall accessor-fn global-orgel-ref) idx))))
-                           (setf (aref (funcall g-accessor-fn orgel) idx) vsl)))))))
-        ))
+                           (setf (value vsl) (val (aref (funcall accessor-fn global-orgel-ref) idx)))
+                           (setf (aref (funcall g-accessor-fn orgel) idx) vsl)))))))))
 
 (defun on-new-window (body)
   (let ((orgel-gui (make-orgel-gui))
         connection-id)
-    (clog-gui-initialize body)
+    (clog-dsp-widgets-initialize body)
     (setf connection-id (clog::connection-id body))
-    (load-script (html-document body) "js/vumeter.js")
-    (load-script (html-document body) "js/toggle.js")
     (setf (title (html-document body)) "Orgel Sliders")
     (add-class body "w3-blue-grey") ;;; background color
-    (load-css (html-document body) "/css/w3.css")
-    (load-css (html-document body) "./css/custom-gui-elems.css")
     (setf (gethash "orgel-gui" (gethash connection-id clog-connection::*connection-data*))
           orgel-gui)
     ;; When doing extensive setup of a page using connection cache
     ;; reduces rountrip traffic and speeds setup.
     (with-connection-cache (body)
-      (let ((gui-container (create-div body :style "display: flex;overflow: auto;margin-right: 15px;padding-bottom:30px;")))
+      (let ((gui-container (create-div body
+                                       :css '(:display "flex"
+                                              :overflow "auto"
+                                              :margin-right "15px"
+                                              :padding-bottom "30px"))))
         (dotimes (i 10)
           (let ((orgel (aref (orgel-gui-orgeln orgel-gui) i))
                 (global-orgel-ref (aref *curr-state* i)))
@@ -212,8 +179,8 @@
 (defun start-orgel-gui ()
   "Start Orgel Gui."
   (initialize 'on-new-window
-              :static-root (merge-pathnames "./www/"
-                                            (asdf:system-source-directory :cl-orgel-gui)))
+              :static-root
+              (merge-pathnames "./www/" (asdf:system-source-directory :clog-dsp-widgets)))
   (open-browser))
 
 ;;; (start-orgel-gui)

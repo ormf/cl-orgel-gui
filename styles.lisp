@@ -28,6 +28,7 @@
   (map 'vector (lambda (idx)  (aref *colors* idx)) '(0 0 1 0 2 1 3 0 4 2 5 1 6 3 7 0)))
 
 (defparameter *msl-title-style* "font-size: 8px;align: bottom; padding-top: 0px; padding-bottom: 0px;")
+(defparameter *msl-title-css* '(:font-size 8px :align "bottom" :padding-top 0px :padding-bottom 0px))
 
-(defparameter *msl-style* `(:num 16 :width 160 :colors ,*vsl-colors* :background "transparent"))
+(defparameter *msl-style* `(:num 16 :css (:width 160px :height 100px) :colors ,*vsl-colors* :background "transparent"))
 

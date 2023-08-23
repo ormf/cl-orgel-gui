@@ -23,60 +23,63 @@
 (defun ensure-string (token)
   (if (stringp token) token (format nil "~S" token)))
 
+(defmacro rebind-as-list (tokens)
+  (mapcar (lambda (tk) (list tk `(uiop:ensure-list ,tk))) tokens))
+
 (defmacro init-toggle (slot parent orgelidx local-orgel global-orgel
                        &key (size 10)
-                         (content "")
-                         (toggle-content "")
-                         (color "black")
-                         (background "white")
-                         (selected-background "gray")
-                         (selected-foreground "black")
-                         (value-off "0.0")
-                         (value-on "1.0")
-)
+                       (value 0)
+                         (values ''("0" "1"))
+                         (label ''("" ""))
+                         (text-color ''("black"))
+                         (background ''("white" "gray")))
   (let ((name (intern (format nil "~:@(tg-~a~)" slot)))
         (g-accessor (intern (format nil "~:@(g-orgel-~a~)" slot)))
         (accessor (intern (format nil "~:@(orgel-~a~)" slot))))
     `(let* ((,name (toggle ,parent
                            :size ,size
-                           :content ,content
-                           :toggle-content ,toggle-content
-                           :color ,color
+                           :label ,label
+                           :text-color ,text-color
                            :background ,background
-                           :selected-background ,selected-background
-                           :selected-foreground ,selected-foreground
-                           :value-off ,value-off
-                           :value-on ,value-on
-                           :slot ,slot
-                           :val-change-cb (make-orgel-attr-val-receiver ,slot ,orgelidx ,global-orgel))))
+                           :values ,values
+                           :value ,value
+                           :val-change-cb (make-orgel-val-receiver ,slot ,orgelidx ,global-orgel))))
        (setf (,g-accessor ,local-orgel) ,name)
        (setf (attribute ,name "data-val") (val (,accessor ,global-orgel)))
        ,name)))
 
 (defmacro init-vslider (slot parent orgelidx local-orgel global-orgel
-                        &key (size 10)
+                        &key
+                          css
                           (color "#444")
                           (background "#444")
-                          (thumbcolor "orange"))
+                          (thumbcolor "orange")
+                          (height "100px")
+                          (width "8px"))
   (let ((name (intern (format nil "~:@(tg-~a~)" slot)))
         (g-accessor (intern (format nil "~:@(g-orgel-~a~)" slot)))
         (accessor (intern (format nil "~:@(orgel-~a~)" slot))))
     `(let* ((,name (vslider ,parent
-                            :style (format nil "box-sizing: border-box;width: ~apx;height: 100%;--slider-thumb-height: 2px;--slider-thumb-width: 100%;flex: 0 0 auto;" ,size)
-                            :thumbcolor ,thumbcolor
-                            :color ,color
-                            :background ,background
-                            :val-change-cb (make-orgel-attr-val-receiver ,slot ,orgelidx ,global-orgel))))
+;;                            :style (format nil "box-sizing: border-box;width: ~apx;height: 100%;--slider-thumb-height: 2px;--slider-thumb-width: 100%;flex: 0 0 auto;" ,size)
+                            :css (append
+                                  `(:--thumb-color ,,thumbcolor
+                                    :--bar-color ,,color
+                                    :background ,,background
+                                    :width ,,width
+                                    :height ,,height
+                                    :flex "0 0 auto")
+                                  ,css)
+                            :val-change-cb (make-orgel-val-receiver ,slot ,orgelidx ,global-orgel))))
        (setf (,g-accessor ,local-orgel) ,name)
-;;       (setf (value ,name) (* 100 (val (,accessor ,global-orgel))))
+       (setf (value ,name) (val (,accessor ,global-orgel)))
        ,name)))
 
 
 
 (defmacro init-hslider (slot parent orgelidx local-orgel global-orgel
                         &key ;;;(size 10)
-                          (width 100)
-                          (height 10)
+                          (width "100 px")
+                          (height "8px")
                           (color "#444")
                           (background "#444")
                           (thumbcolor "orange"))
@@ -84,15 +87,15 @@
         (g-accessor (intern (format nil "~:@(g-orgel-~a~)" slot)))
         (accessor (intern (format nil "~:@(orgel-~a~)" slot))))
     `(let* ((,name (hslider ,parent
-                            :thumbcolor ,thumbcolor
-                            :color ,color
-                            :background ,background
-                            :width ,width
-                            :height ,height
-                            :val-change-cb (make-orgel-attr-val-receiver ,slot ,orgelidx ,global-orgel))))
+                            :css `(:--thumb-color ,,thumbcolor
+                                   :--bar-color ,,color
+                                   :background ,,background
+                                   :width ,,width
+                                   :height ,,height
+                                   :flex "0 0 auto")
+                            :val-change-cb (make-orgel-val-receiver ,slot ,orgelidx ,global-orgel))))
        (setf (,g-accessor ,local-orgel) ,name)
-;;       (setf (value ,name) (* 100 (val (,accessor ,global-orgel))))
-       ,name)))
+       (setf (value ,name) (val (,accessor ,global-orgel))))))
 
 (defmacro init-button (container &key (content "") style (background "#fff") (active-bg "#444"))
   (let ((btn (gensym "btn")))
@@ -111,7 +114,7 @@
           (setf (style ,btn "background") ,background)))
        ,btn)))
 
-(defmacro init-numbox (slot parent orgelidx local-orgel global-orgel &key (size 10))
+(defmacro init-numbox (slot parent orgelidx local-orgel global-orgel &key (size 10) (min nil) (max nil))
   (let ((name (intern (format nil "~:@(nb-~a~)" slot)))
         (g-accessor (intern (format nil "~:@(g-orgel-~a~)" slot)))
         (accessor (intern (format nil "~:@(orgel-~a~)" slot)))
@@ -120,6 +123,8 @@
             (container (create-div ,parent :style "display: flex;align-items: baseline;justify-content: space-between;"))            
             (,name (numbox container
                            :label ,(format nil "~(~A~)" (slot-label slot))
+                           :min ,min
+                           :max ,max
                            :color "black" :background-color "#fff"
                            :val-change-cb (make-orgel-val-receiver ,slot ,orgelidx ,global-orgel)
                            :slot ',slot-label
@@ -130,15 +135,16 @@
 
 ;;; (init-numbox :base-freq nbs1 (aref (orgel-gui-orgeln *papierrohrorgeln*) 0))
 
-(defun collect-terms (slots containers orgelidx local-orgel global-orgel size)
+(defun collect-terms (slots containers ranges orgelidx local-orgel global-orgel size)
   (loop
     for slot in slots
     for container in containers
-    collect `(init-numbox ,slot ,container ,orgelidx ,local-orgel ,global-orgel :size ,size)))
+    for range in ranges
+    collect `(init-numbox ,slot ,container ,orgelidx ,local-orgel ,global-orgel :min ,(first range) :max ,(second range) :size ,size)))
 
-(defmacro init-numboxes (slots containers orgelidx local-orgel global-orgel &key (size 10))
+(defmacro init-numboxes (slots containers ranges orgelidx local-orgel global-orgel &key (size 10))
   `(progn
-     ,@(collect-terms slots containers orgelidx local-orgel global-orgel size)))
+     ,@(collect-terms slots containers ranges orgelidx local-orgel global-orgel size)))
 
 (defmacro init-multi-vu (slot parent orgelidx local-orgel global-orgel
                          &key (num 8) (width 80) (height 100) (background "#444") (direction :up) (border "none")
@@ -148,25 +154,26 @@
                            val-change-cb)
   (declare (ignore orgelidx global-orgel))
   (let ((vus (gensym "vus"))
-        (container (gensym "vu-container"))
+        (mvu (gensym "mvu"))
         (g-accessor (intern (format nil "~:@(g-orgel-~a~)" slot)))
 ;;;        (accessor (intern (format nil "~:@(orgel-~a~)" slot)))
         )
-    `(multiple-value-bind (,vus ,container)
-         (multi-vu ,parent :num ,num :width ,width :height ,height
-                           :led-colors ,led-colors
-                           :direction ,direction :background ,background
-                           :inner-background ,inner-background
-                           :border ,border :inner-border ,inner-border
-                           :inner-padding-bottom ,inner-padding-bottom
-                           :inner-padding ,inner-padding
-                           :style ,style
-                           :val-change-cb ,val-change-cb)
-       (setf (,g-accessor ,local-orgel) ,vus)
-       (loop for vu in ,vus
+    `(let* ((,mvu (multi-vu ,parent :num ,num :width ,width :height ,height
+                                    :led-colors ,led-colors
+                                    :direction ,direction :background ,background
+                                    :inner-background ,inner-background
+                                    :border ,border :inner-border ,inner-border
+                                    :inner-padding-bottom ,inner-padding-bottom
+                                    :inner-padding ,inner-padding
+                                    :style ,style
+                                    :val-change-cb ,val-change-cb))
+            (,vus (meters ,mvu)))
+       
+       (setf (,g-accessor ,local-orgel) (meters ,mvu))
+       (loop for vu across ,vus
              for idx from 0
              do (setf (attribute vu "data-db") (- (val (aref (aref *orgel-mlevel* orgelidx) idx)) 100)))
-       (values ,vus ,container))))
+       ,mvu)))
 
 
 (defparameter *slot-labels* '((:ramp-down . :ramp-dwn)))
@@ -193,16 +200,18 @@
 (defun cols->jsarray (cols)
   (format nil "[~{'rgba(~{~a~^, ~}, 1.0)'~^, ~}]" (mapcar #'hex->rgb cols)))
 
-(defun create-slider-panel (container &key label receiver-fn)
-  (create-div container :content label :style *msl-title-style*)
-  (apply #'multi-slider container :val-change-cb receiver-fn *msl-style*))
+(defun create-slider-panel (container &key label val-change-cb)
+  (create-div container :content label :css *msl-title-css*)
+  (apply #'multi-slider container :val-change-cb val-change-cb *msl-style*))
 
+#|
 (defun make-orgel-attr-val-receiver (slot orgelidx global-orgel-ref &key (attribute "data-val"))
   (let ((slot-symbol (intern (format nil "~:@(~a~)" slot) 'cl-orgel-gui)))
     (lambda (val self)
+;;      (break "attr-val-receiver: ~a" val self)
       (let* ((val-string (ensure-string val))
              (orgel-val (/ (read-from-string val-string)
-                           (if (member slot '(:main :bias-bw)) 100.0 1.0)))
+                           (if (member slot '(:main :bias-bw)) 1.0 1.0)))
 ;;;             (num-val (read-from-string val-string))
              )
         (setf (val (slot-value global-orgel-ref slot-symbol)) orgel-val)
@@ -219,6 +228,7 @@
 (defun make-orgel-val-receiver (slot orgelidx global-orgel-ref)
   (let ((slot-symbol (intern (format nil "~:@(~a~)" slot) 'cl-orgel-gui)))
     (lambda (val self)
+;;      (break "val-receiver: ~a" val self)
       (let* ((val-string (ensure-string val))
 ;;;             (num-val (read-from-string val-string))
              (orgel-val (/ (read-from-string val-string)
@@ -239,10 +249,10 @@
   (let ((g-accessor (slot->function "g-orgel" slot))
         (accessor (slot->function "orgel" slot)))
     (lambda (idx val self)
+;;      (break "array-receiver: ~a ~a ~a" idx val self)
       (let* ((val-string (ensure-string val))
 ;;;             (num-val (read-from-string val-string))
-             (orgel-val (/ (read-from-string val-string) 100.0))
-             )
+             (orgel-val (read-from-string val-string)))
         (setf (val (aref (funcall accessor global-orgel-ref) idx)) orgel-val)
 ;;        (cl-orgelctl::orgel-ctl-fader (cl-orgelctl::orgel-name (1+ orgelidx)) slot (1+ idx) orgel-val)
         (maphash (lambda (connection-id connection-hash)
@@ -254,6 +264,7 @@
 ;;;                                       (break "~a" orgel)
                                        (unless (equal self elem) (setf (value elem) val-string))))))
                  clog-connection::*connection-data*)))))
+|#
 
 (defun slot->function (struct-name slot &optional (package 'cl-orgel-gui))
   "get the function object for a slot of a struct with prefix"
