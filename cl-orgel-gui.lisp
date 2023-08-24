@@ -22,7 +22,7 @@
 
 (defparameter *my-vus* nil)
 (defparameter *preset-panel* nil)
-
+#|
 (defun create-preset-panel (container vu-container)
   (let ((preset-panel
           (create-div container :height 80
@@ -81,42 +81,43 @@
          (lambda (obj)
            (declare (ignore obj))
            (format t "save presets!~%")))
-        (install-preset-key-switch container (html-id vu-container) (html-id preset-panel))))))
+(install-preset-key-switch container (html-id vu-container) (html-id preset-panel))))))
+|#
 
 (defun create-orgel-gui (orgelidx container orgel global-orgel-ref)
       (let* (p1 p2 p3 p4 p5 p7 nbs1 nbs2 tg1-container tg2-container)
         (create-br container)
         (setf p1  (create-div container :css '(:margin-left "10px" :width "180px")))
-        (create-div p1 :content (format nil "Orgel~2,'0d" (1+ orgelidx)) :style "align: bottom; padding-bottom: 10px;")
-        (setf p4  (create-div p1 :width 180 :height 150 :style "display: flex;justify-content: space-between;flex: 0 0 auto;"))
+        (create-div p1 :content (format nil "Orgel~2,'0d" (1+ orgelidx)) :css '(:align "bottom" :padding-bottom 10px))
+        (setf p4  (create-div p1 :width 180 :height 150 :css '(:display flex :justify-content space-between :flex "0 0 auto")))
         (setf p3  (create-div p4))
-        (setf p2 (create-div p3 :style "width: 160px;height: 60px;display: flex;justify-content: space-between;margin-bottom: 10px"))
-        (setf nbs1 (create-div p2 :style "width: 75px;font-size: 6pt;display: flex;flex-direction: column;justify-content: space-between;")) ;;; container for numberbox(es)
-        (setf nbs2 (create-div p2 :style "width: 73px; font-size: 6pt;display: flex;flex-direction: column;justify-content: space-between;")) ;;; container for numberbox(es)
+        (setf p2 (create-div p3 :css '(:width 160px :height 60px :display flex :justify-content space-between :margin-bottom 10px)))
+        (setf nbs1 (create-div p2 :css '(:width 75px :font-size 6pt :display flex :flex-direction column :justify-content space-between))) ;;; container for numberbox(es)
+        (setf nbs2 (create-div p2 :css '(:width 73px  :font-size 6pt :display flex :flex-direction column :justify-content space-between))) ;;; container for numberbox(es)
         (init-numboxes
          (:ramp-up :ramp-down :exp-base :base-freq :max-amp :min-amp)
          (nbs1 nbs1 nbs1 nbs2 nbs2 nbs2)
          ((0 1000) (0 1000) (0.01 10) (0 10000) (0 4) (0 4))
          orgelidx orgel global-orgel-ref
          :size 6)
-        (setf tg1-container (create-div nbs1 :style "display: flex;justify-content: right;")) ;;; container for right alignment of toggle
+        (setf tg1-container (create-div nbs1 :css '(:display flex :justify-content right))) ;;; container for right alignment of toggle
         (init-toggle :phase tg1-container orgelidx orgel global-orgel-ref
                      :label '("phase" "inv") :size 6 :background '("lightgreen" "red")
                      :values '("1" "-1") :value 1  :text-color '("black" "white"))
-        (setf tg2-container (create-div nbs2 :style "display: flex;justify-content: right;")) ;;; container for right alignment of toggle
+        (setf tg2-container (create-div nbs2 :css '(:display flex :justify-content right))) ;;; container for right alignment of toggle
         (init-toggle :bias-type tg2-container orgelidx orgel global-orgel-ref
                      :label '("bandp" "notch") :size 6 :background '("lightgreen" "orange"))
-        (Setf p7 (create-div p3 :style "position: relative;" :height 80 :width 160))
+        (Setf p7 (create-div p3 :css '(:position relative) :height 80 :width 160))
         (let ((vu-container
                 (init-multi-vu :meters p7 orgelidx orgel global-orgel-ref
-                               :num 16 :width 160 :height 80
+                               :num 16 :width "160px" :height "80px"
                                :led-colors :blue
                                :direction :up :background "#444"
                                :inner-background "#444"
                                :border "none" :inner-border "thin solid black"
                                :inner-padding-bottom "0px"
                                :inner-padding "0"
-                               :style "margin-bottom: 10px;position: absolute;top: 0;left: 0;"
+                               :css '(:margin-bottom 10px :position absolute :top 0 :left 0)
                                :val-change-cb nil)))
           (when (zerop orgelidx)
             (create-preset-panel p7 vu-container)))

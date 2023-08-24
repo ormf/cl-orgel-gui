@@ -120,7 +120,7 @@
         (accessor (intern (format nil "~:@(orgel-~a~)" slot)))
         (slot-label (intern (format nil "~:@(~a~)" slot))))
     `(let* (
-            (container (create-div ,parent :style "display: flex;align-items: baseline;justify-content: space-between;"))            
+            (container (create-div ,parent :css '(:display "flex" :align-items "baseline" :justify-content "space-between")))            
             (,name (numbox container
                            :label ,(format nil "~(~A~)" (slot-label slot))
                            :min ,min
@@ -147,10 +147,10 @@
      ,@(collect-terms slots containers ranges orgelidx local-orgel global-orgel size)))
 
 (defmacro init-multi-vu (slot parent orgelidx local-orgel global-orgel
-                         &key (num 8) (width 80) (height 100) (background "#444") (direction :up) (border "none")
+                         &key (num 8) (width "80px") (height "100px") (background "#444") (direction :up) (border "none")
                            (inner-background "var(--vu-background)") (inner-border "thin solid black") (inner-padding "0")
                            (inner-padding-bottom "0px")
-                           (led-colors :blue) (style "margin-bottom: 10px;position: absolute;top: 0;left: 0;")
+                           (led-colors :blue) (css '(:margin-bottom 10px :position absolute :top 0 :left 0))
                            val-change-cb)
   (declare (ignore orgelidx global-orgel))
   (let ((vus (gensym "vus"))
@@ -165,7 +165,7 @@
                                     :border ,border :inner-border ,inner-border
                                     :inner-padding-bottom ,inner-padding-bottom
                                     :inner-padding ,inner-padding
-                                    :style ,style
+                                    :css ,css
                                     :val-change-cb ,val-change-cb))
             (,vus (meters ,mvu)))
        
