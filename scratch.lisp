@@ -20,7 +20,24 @@
 
 (in-package :cl-orgel-gui)
 
+(defun start-orgel-gui2 ()
+  "Start Orgel Gui."
+  (initialize 'on-new-window
+              :port 8081
+              :static-root
+              (merge-pathnames "./www/" (asdf:system-source-directory :clog-dsp-widgets)))
+  (open-browser))
 
+(setf (val (aref (aref *orgel-mlevel* 2) 5)) 100)
+
+*curr-state*
+
+(set-on-new-window 'page2 :path "/page2")
+
+cl-orgelctl::*orgel-freqs*
+
+
+(start-orgel-gui2)
 (quote )
 
 (dolist (slot '(:ramp-up :ramp-down :exp-base :base-freq :min-amp :max-amp))

@@ -175,6 +175,44 @@
              do (setf (attribute vu "data-db") (- (val (aref (aref *orgel-mlevel* orgelidx) idx)) 100)))
        ,mvu)))
 
+(defmacro init-kbd-multi-vu (slot parent gui-orgeln global-orgel
+                         &key (num 8) (width "80px") (height "100px") (background "#444") (direction :up) (border "none")
+                           (inner-background "var(--vu-background)") (inner-border "thin solid black") (inner-padding "0")
+                           (inner-padding-bottom "0px")
+                           (led-colors :blue) (css '(:margin-bottom 10px :position absolute :top 0 :left 0))
+                           val-change-cb)
+  (declare (ignore orgelidx global-orgel))
+  (let ((vus (gensym "vus"))
+        (mvu (gensym "mvu"))
+        (g-meter-array (gensym "g-meter-array"))
+        (g-accessor (intern (format nil "~:@(g-orgel-~a~)" slot)))
+;;;        (accessor (intern (format nil "~:@(orgel-~a~)" slot)))
+        )
+    `(let* ((,mvu (multi-vu ,parent :num ,num :width ,width :height ,height
+                                    :led-colors ,led-colors
+                                    :direction ,direction :background ,background
+                                    :inner-background ,inner-background
+                                    :border ,border :inner-border ,inner-border
+                                    :inner-padding-bottom ,inner-padding-bottom
+                                    :inner-padding ,inner-padding
+                                    :css ,css
+                                    :val-change-cb ,val-change-cb))
+            (,vus (meters ,mvu))
+            (,g-meter-array (coerce
+                             (loop for i below *orgelcount*
+                                   collect (make-array 16))
+                             'vector)))
+       
+       (loop for idx below *orgelcount* do (setf (,g-accessor (aref gui-orgeln idx)) (aref ,g-meter-array idx)))
+       (loop for vu across ,vus
+             for idx from 0
+             do (let* ((orgel-ref (aref cl-orgelctl::*orgel-freqs-vector* idx))
+                          (orgel-idx (1- (third orgel-ref)))
+                          (array-idx (1- (fourth orgel-ref))))
+                  (setf (attribute vu "data-db") (- (val (aref (aref *orgel-mlevel* orgel-idx) array-idx)) 100))
+                  (setf (aref (aref ,g-meter-array orgel-idx) array-idx) vu)))
+       ,mvu)))
+
 
 (defparameter *slot-labels* '((:ramp-down . :ramp-dwn)))
 
