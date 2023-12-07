@@ -197,6 +197,7 @@
                                     :inner-padding ,inner-padding
                                     :css ,css
                                     :val-change-cb ,val-change-cb))
+            (orgel-freq-vector (make-array 160))
             (,vus (meters ,mvu))
             (,g-meter-array (coerce
                              (loop for i below *orgelcount*
@@ -206,7 +207,7 @@
        (loop for idx below *orgelcount* do (setf (,g-accessor (aref gui-orgeln idx)) (aref ,g-meter-array idx)))
        (loop for vu across ,vus
              for idx from 0
-             do (let* ((orgel-ref (aref cl-orgelctl::*orgel-freqs-vector* idx))
+             do (let* ((orgel-ref (aref orgel-freq-vector idx))
                           (orgel-idx (1- (third orgel-ref)))
                           (array-idx (1- (fourth orgel-ref))))
                   (setf (attribute vu "data-db") (- (val (aref (aref *orgel-mlevel* orgel-idx) array-idx)) 100))

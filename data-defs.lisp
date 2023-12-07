@@ -41,23 +41,23 @@
   (osc-level (make-array 16 :initial-contents (v-collect (n 16) (make-instance 'model-slot))) :type simple-array))
 
 (defstruct g-orgel
-  (ramp-up "29.0")
-  (ramp-down "29.0")
-  (exp-base "0.0")
-  (base-freq "0.0")
-  (min-amp "0.0")
-  (max-amp "1.0")
-  (phase "1")
-  (bias-type "0")
-  (level (make-array 16))
-  (delay (make-array 16))
-  (q (make-array 16))
-  (gain (make-array 16))
-  (osc-level (make-array 16))
-  (meters (make-array 10))
-  (main "0.0")
-  (bias-bw "0.0")
-  (bias-pos "0.0"))
+  ramp-up
+  ramp-down
+  exp-base 
+  base-freq
+  min-amp
+  max-amp
+  phase
+  bias-type
+  (level (make-array 16 :initial-element nil))
+  (delay (make-array 16 :initial-element nil))
+  (q (make-array 16 :initial-element nil))
+  (gain (make-array 16 :initial-element nil))
+  (osc-level (make-array 16 :initial-element nil))
+  (meters (make-array 10 :initial-element nil))
+  main
+  bias-bw
+  bias-pos)
 
 (defstruct gui-presets
   (num "0.0"))
