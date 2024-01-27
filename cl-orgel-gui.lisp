@@ -112,6 +112,7 @@
                 (init-multi-vu :meters p7 orgelidx orgel global-orgel-ref
                                :num 16 :width "160px" :height "80px"
                                :led-colors :blue
+                               :display-map :pd
                                :direction :up :background "#444"
                                :inner-background "#444"
                                :border "none" :inner-border "thin solid black"
@@ -158,7 +159,7 @@
 (defun on-new-window (body)
   (let ((orgel-gui (make-orgel-gui))
         connection-id)
-    (clog-dsp-widgets-initialize body)
+    (clog-orgel-widgets-initialize body)
     (setf connection-id (clog::connection-id body))
     (setf (title (html-document body)) "Orgel Sliders")
     (add-class body "w3-blue-grey") ;;; background color
@@ -182,8 +183,9 @@
   "Start Orgel Gui."
   (initialize 'on-new-window
               :static-root
-              (merge-pathnames "./www/" (asdf:system-source-directory :clog-dsp-widgets)))
-  (open-browser))
+              (merge-pathnames "./www/" (asdf:system-source-directory :clog-orgel-widgets)))
+;;;  (open-browser)
+  )
 
 ;;; (start-orgel-gui)
 

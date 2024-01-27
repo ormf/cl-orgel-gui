@@ -148,7 +148,7 @@
 
 (defmacro init-multi-vu (slot parent orgelidx local-orgel global-orgel
                          &key (num 8) (width "80px") (height "100px") (background "#444") (direction :up) (border "none")
-                           (inner-background "var(--vu-background)") (inner-border "thin solid black") (inner-padding "0")
+                           (inner-background "var(--vu-background)") (inner-border "thin solid black") (inner-padding "0") (display-map :pd)
                            (inner-padding-bottom "0px")
                            (led-colors :blue) (css '(:margin-bottom 10px :position absolute :top 0 :left 0))
                            val-change-cb)
@@ -165,6 +165,7 @@
                                     :border ,border :inner-border ,inner-border
                                     :inner-padding-bottom ,inner-padding-bottom
                                     :inner-padding ,inner-padding
+                                    :display-map ,display-map
                                     :css ,css
                                     :val-change-cb ,val-change-cb))
             (,vus (meters ,mvu)))

@@ -25,7 +25,7 @@
   (initialize 'on-new-window
               :port 8081
               :static-root
-              (merge-pathnames "./www/" (asdf:system-source-directory :clog-dsp-widgets)))
+              (merge-pathnames "./www/" (asdf:system-source-directory :clog-orgel-widgets)))
   (open-browser))
 
 (setf (val (aref (aref *orgel-mlevel* 2) 5)) 100)
