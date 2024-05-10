@@ -168,15 +168,20 @@
     ;; When doing extensive setup of a page using connection cache
     ;; reduces rountrip traffic and speeds setup.
     (with-connection-cache (body)
-      (let ((gui-container (create-div body
+      (let* ((gui-container (create-div body
                                        :css '(:display "flex"
 ;;;;                                              :overflow "auto"
                                               :margin-right "15px"
-                                              :padding-bottom "30px"))))
+                                              :padding-bottom "30px")))
+             (margin (create-div gui-container :style "margin: 10px")))
+        (create-button margin :class "slider-constrain" :style "height: 10px;width: 10px;")
         (dotimes (i 10)
           (let ((orgel (aref (orgel-gui-orgeln orgel-gui) i))
                 (global-orgel-ref (aref *curr-state* i)))
-            (create-orgel-gui i gui-container orgel global-orgel-ref)))))))
+            (create-orgel-gui i gui-container orgel global-orgel-ref)))
+        (js-execute body "orgelSetupGlobal()")
+
+        ))))
 
 
 (defun start-orgel-gui ()
