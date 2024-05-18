@@ -84,6 +84,19 @@
 (install-preset-key-switch container (html-id vu-container) (html-id preset-panel))))))
 |#
 
+(defun ndb-slider->amp (ndb &key (min -40) (max 0))
+  (if (zerop ndb)
+      0
+      (ou:db->amp (n-lin ndb min max))))
+
+(defun amp->ndb-slider (amp &key (min -40) (max 0))
+  (if (zerop amp)
+      0
+      (ou:lin-n (ou:amp->db amp) min max)))
+
+(defun lin-n (val min max)
+  (float (/ (- val min) (- max min)) 1.0))
+
 (defun create-orgel-gui (orgelidx container orgel global-orgel-ref)
       (let* (p1 p2 p3 p4 p5 p7 nbs1 nbs2 tg1-container tg2-container)
         (create-br container)
@@ -129,12 +142,12 @@
         (setf p5 (create-div p1 :width 180 :height 100 :style "padding-bottom: 5px;display: flex;justify-content: space-between;flex: 0 0 auto;"))
 ;;;        (setf p6 (create-div p5 :style "display: block;"))
         (let ((msl
-                (apply #'multi-slider p5 :val-change-cb (make-orgel-array-receiver :level orgelidx global-orgel-ref) *msl-style*)))
+                (apply #'multi-slider p5 :val-change-cb (make-orgel-array-receiver :level orgelidx global-orgel-ref :db t) *msl-style*)))
           (init-vslider :bias-bw p5 orgelidx orgel global-orgel-ref :width "8px" :height "100px")
           (loop for vsl across (sliders msl)
                 for idx from 0
                 do (progn
-                     (setf (value vsl) (val (aref (orgel-level global-orgel-ref) idx)))
+                     (setf (value vsl) (amp->ndb-slider (val (aref (orgel-level global-orgel-ref) idx))))
                      (setf (aref (g-orgel-level orgel) idx) vsl)
                      )))
 ;;;       (hslider p1 :background "#444" :color "#444" :thumbcolor "orange" :height "8px" :width "160px")
@@ -142,18 +155,19 @@
 
         (dolist (label '("Delay" "Q" "Gain" "Osc-Level"))
           (let ((slot-name (make-symbol (format nil "~:@(~a~)" label))))
-            (let ((msl
-                    (create-slider-panel
-                     p1
-                     :label label
-                     :val-change-cb (make-orgel-array-receiver slot-name orgelidx global-orgel-ref))))
+            (let* ((db? (member slot-name '(:gain :osc-level)))
+                   (msl
+                     (create-slider-panel
+                      p1
+                      :label label
+                      :val-change-cb (make-orgel-array-receiver slot-name orgelidx global-orgel-ref :db db?))))
 ;;;        (create-br p1)
               (let ((g-accessor-fn (slot->function "g-orgel" slot-name))
                     (accessor-fn (slot->function "orgel" slot-name)))
                 (loop for vsl across (sliders msl)
                       for idx from 0
-                      do (progn
-                           (setf (value vsl) (val (aref (funcall accessor-fn global-orgel-ref) idx)))
+                      do (let ((val (aref (funcall accessor-fn global-orgel-ref) idx)))
+                           (setf (value vsl) (if db? (amp->ndb-slider val) val))
                            (setf (aref (funcall g-accessor-fn orgel) idx) vsl)))))))))
 
 (defun on-new-window (body)
