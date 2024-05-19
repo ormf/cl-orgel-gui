@@ -154,21 +154,23 @@
         (init-hslider :bias-pos p1 orgelidx orgel global-orgel-ref :height "8px" :width "160px")
 
         (dolist (label '("Delay" "Q" "Gain" "Osc-Level"))
-          (let ((slot-name (make-symbol (format nil "~:@(~a~)" label))))
-            (let* ((db? (member slot-name '(:gain :osc-level)))
+          (let ((slot-key (make-keyword (format nil "~:@(~a~)" label))))
+            (let* ((db? (member slot-key '(:gain :osc-level)))
                    (msl
                      (create-slider-panel
                       p1
                       :label label
-                      :val-change-cb (make-orgel-array-receiver slot-name orgelidx global-orgel-ref :db db?))))
+                      :val-change-cb (make-orgel-array-receiver slot-key orgelidx global-orgel-ref :db db?))))
 ;;;        (create-br p1)
-              (let ((g-accessor-fn (slot->function "g-orgel" slot-name))
-                    (accessor-fn (slot->function "orgel" slot-name)))
+              (let ((g-accessor-fn (slot->function "g-orgel" slot-key))
+                    (accessor-fn (slot->function "orgel" slot-key)))
                 (loop for vsl across (sliders msl)
                       for idx from 0
-                      do (let ((val (aref (funcall accessor-fn global-orgel-ref) idx)))
-                           (setf (value vsl) (if db? (amp->ndb-slider val) val))
-                           (setf (aref (funcall g-accessor-fn orgel) idx) vsl)))))))))
+                      do (let ((amp (val (aref (funcall accessor-fn global-orgel-ref) idx))))
+                           (setf (value vsl) (if db? (amp->ndb-slider amp) amp))
+                           (setf (aref (funcall g-accessor-fn orgel) idx) vsl))))
+;;;	      (format t "slider-panel: ~S ~a ~a~%" slot-key db? (member slot-key '(:gain :osc-level)))
+	      )))))
 
 (defun on-new-window (body)
   (let ((orgel-gui (make-orgel-gui))
@@ -189,7 +191,7 @@
                                               :padding-bottom "30px")))
              (margin (create-div gui-container :style "margin: 10px")))
         (create-button margin :class "slider-constrain" :style "height: 10px;width: 10px;")
-        (dotimes (i 10)
+        (dotimes (i 8)
           (let ((orgel (aref (orgel-gui-orgeln orgel-gui) i))
                 (global-orgel-ref (aref *curr-state* i)))
             (create-orgel-gui i gui-container orgel global-orgel-ref)))
