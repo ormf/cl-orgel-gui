@@ -55,7 +55,8 @@
                           (background "#444")
                           (thumbcolor "orange")
                           (height "100px")
-                          (width "8px"))
+                          (width "8px")
+                          db)
   (let ((name (intern (format nil "~:@(tg-~a~)" slot)))
         (g-accessor (intern (format nil "~:@(g-orgel-~a~)" slot)))
         (accessor (intern (format nil "~:@(orgel-~a~)" slot))))
@@ -69,7 +70,7 @@
                                     :height ,,height
                                     :flex "0 0 auto")
                                   ,css)
-                            :val-change-cb (make-orgel-val-receiver ,slot ,orgelidx ,global-orgel))))
+                            :val-change-cb (make-orgel-val-receiver ,slot ,orgelidx ,global-orgel :db ,db))))
        (setf (,g-accessor ,local-orgel) ,name)
        (setf (value ,name) (val (,accessor ,global-orgel)))
        ,name)))

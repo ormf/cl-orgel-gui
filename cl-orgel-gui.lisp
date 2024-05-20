@@ -84,12 +84,12 @@
 (install-preset-key-switch container (html-id vu-container) (html-id preset-panel))))))
 |#
 
-(defun ndb-slider->amp (ndb &key (min -40) (max 0))
+(defun ndb-slider->amp (ndb &key (min -20) (max 0))
   (if (zerop ndb)
       0
       (ou:db->amp (n-lin ndb min max))))
 
-(defun amp->ndb-slider (amp &key (min -40) (max 0))
+(defun amp->ndb-slider (amp &key (min -20) (max 0))
   (if (zerop amp)
       0
       (ou:lin-n (ou:amp->db amp) min max)))
@@ -136,7 +136,7 @@
           (when (zerop orgelidx)
             (create-preset-panel p7 vu-container)))
 ;;;        main volume slider
-        (init-vslider :main p4 orgelidx orgel global-orgel-ref :height "150px" :css '(:margin-left 5px))
+        (init-vslider :main p4 orgelidx orgel global-orgel-ref :height "150px" :css '(:margin-left 5px) :db -60)
         (create-div p1 :height 10) ;;; distance
         (create-div p1 :content "Level" :css *msl-title-css*)
         (setf p5 (create-div p1 :width 180 :height 100 :style "padding-bottom: 5px;display: flex;justify-content: space-between;flex: 0 0 auto;"))
@@ -179,18 +179,26 @@
     (setf connection-id (clog::connection-id body))
     (setf (title (html-document body)) "Orgel Sliders")
     (add-class body "w3-blue-grey") ;;; background color
-    (setf (gethash "orgel-gui" (gethash connection-id clog-connection::*connection-data*))
+    (setf (gethash "orgel-gui"
+                   (gethash
+                    connection-id
+                    clog-connection::*connection-data*))
           orgel-gui)
     ;; When doing extensive setup of a page using connection cache
     ;; reduces rountrip traffic and speeds setup.
     (with-connection-cache (body)
-      (let* ((gui-container (create-div body
-                                       :css '(:display "flex"
-;;;;                                              :overflow "auto"
-                                              :margin-right "15px"
-                                              :padding-bottom "30px")))
+      (let* ((gui-container
+               (create-div
+                body
+                :css '(:display "flex"
+;;;;                       :overflow "auto"
+                       :margin-right "15px"
+                       :padding-bottom "30px")))
              (margin (create-div gui-container :style "margin: 10px")))
-        (create-button margin :class "slider-constrain" :style "height: 10px;width: 10px;")
+        (create-button
+         margin
+         :class "slider-constrain"
+         :style "height: 10px;width: 10px;")
         (dotimes (i 8)
           (let ((orgel (aref (orgel-gui-orgeln orgel-gui) i))
                 (global-orgel-ref (aref *curr-state* i)))
